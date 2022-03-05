@@ -1,4 +1,4 @@
 # SCF
 Spring Computers Forum
 
-Application which use Spring Boot as Backend and Angular as Frontend <3
+Application which use Spring Boot as Backend and Angular as Frontend ❤️
