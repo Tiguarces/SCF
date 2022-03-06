@@ -6,4 +6,5 @@ import pl.scf.model.AppUser;
 
 @Repository
 public interface IAppUserRepository extends JpaRepository<AppUser, Long> {
+    AppUser findByUsername(String username);
 }
