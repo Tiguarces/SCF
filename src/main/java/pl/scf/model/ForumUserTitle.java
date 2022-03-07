@@ -5,7 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
-import java.util.Set;
+import java.util.List;
 
 import static javax.persistence.FetchType.LAZY;
 import static javax.persistence.GenerationType.IDENTITY;
@@ -26,5 +26,5 @@ public class ForumUserTitle {
     private String rangeIntervalPoints;
 
     @OneToMany(fetch = LAZY, mappedBy = "title")
-    private Set<ForumUser> users;
+    private List<ForumUser> users;
 }

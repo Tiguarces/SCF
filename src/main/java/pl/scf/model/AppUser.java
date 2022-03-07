@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import javax.persistence.*;
 import java.util.Set;
 
+import static javax.persistence.CascadeType.ALL;
 import static javax.persistence.FetchType.LAZY;
 import static javax.persistence.GenerationType.IDENTITY;
 
@@ -23,7 +24,7 @@ public class AppUser {
     private String username;
     private String password;
 
-    @OneToOne(fetch = LAZY, mappedBy = "user")
+    @OneToOne(fetch = LAZY, mappedBy = "user", cascade = ALL)
     private AppUserDetails user_details;
 
     @ManyToMany(fetch = LAZY)
