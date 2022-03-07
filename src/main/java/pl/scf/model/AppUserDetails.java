@@ -26,8 +26,8 @@ public class AppUserDetails {
     private String email;
     private Date createdDate;
 
-    @ManyToOne(fetch = LAZY)
-    private AppUser userRoles;
+    @OneToOne(fetch = LAZY)
+    private AppUser user;
 
     @OneToOne(fetch = LAZY)
     private ForumUser forumUser;

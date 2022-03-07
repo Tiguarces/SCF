@@ -12,6 +12,7 @@ import static javax.persistence.GenerationType.IDENTITY;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(name = "UserRoles")
 public class UserRole {
 
     @Id

@@ -23,7 +23,7 @@ public class AppUser {
     private String username;
     private String password;
 
-    @OneToOne(fetch = LAZY)
+    @OneToOne(fetch = LAZY, mappedBy = "user")
     private AppUserDetails user_details;
 
     @ManyToMany(fetch = LAZY)
