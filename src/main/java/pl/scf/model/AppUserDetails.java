@@ -1,6 +1,8 @@
 package pl.scf.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -13,6 +15,7 @@ import static javax.persistence.GenerationType.IDENTITY;
 
 @Data
 @Entity
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class AppUserDetails {
@@ -27,9 +30,10 @@ public class AppUserDetails {
     private String email;
     private Date createdDate;
 
+    @JsonManagedReference
     @OneToOne(fetch = LAZY, cascade = ALL)
     private AppUser user;
 
-    @OneToOne(fetch = LAZY)
+    @OneToOne(fetch = LAZY, cascade = ALL)
     private ForumUser forumUser;
 }

@@ -3,10 +3,7 @@ package pl.scf.security.filter;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -29,27 +26,23 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
 
 @Slf4j
-@NoArgsConstructor
-@AllArgsConstructor
 public class SCFAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
+    private final AuthenticationManager authenticationManager;
 
-    private AuthenticationManager authenticationManager;
+    private final String secretPassword;
+    private final Long jwtExpiredTime;
 
-    @Value("${JWT_SECRET_PASSWORD}")
-    private String secretPassword;
-
-    @Value("${JWT_EXPIRED_TIME}")
-    private Long jwtExpiredTime;
-
-    public SCFAuthenticationFilter(final AuthenticationManager authenticationManager) {
+    public SCFAuthenticationFilter(AuthenticationManager authenticationManager, String secretPassword, Long jwtExpiredTime) {
         this.authenticationManager = authenticationManager;
+        this.secretPassword = secretPassword;
+        this.jwtExpiredTime = jwtExpiredTime;
     }
 
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
         final String username = request.getParameter("username");
         final String password = request.getParameter("password");
-        log.info("Successfully fetched username {} and password", username);
+        log.info("Successfully fetched username {} and password {}", username, password);
 
         final UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(username, password);
         return authenticationManager.authenticate(authenticationToken);
