@@ -1,7 +1,10 @@
 package pl.scf;
 
 import lombok.AllArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 import pl.scf.model.ForumUserTitle;
@@ -10,42 +13,40 @@ import pl.scf.model.repositories.IForumUserTitleRepository;
 import pl.scf.model.repositories.IUserRoleRepository;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @Slf4j
 @Component
 @AllArgsConstructor
+@EnableConfigurationProperties
+@ConfigurationProperties(prefix = "user")
 public class DatabaseInitializer {
-    private final IForumUserTitleRepository titleRepository;
-    private final IUserRoleRepository roleRepository;
+
+    private IForumUserTitleRepository titleRepository;
+    private IUserRoleRepository roleRepository;
+
+    @Setter
+    private Map<String, String> titles;
+
+    @Setter
+    private List<String> roles;
 
     @Bean
     public final void initialize() {
+        log.info(String.valueOf(titles));
+
         if(titleRepository.count() == 0) {
-            final Map<String, String> titles = new HashMap<>();
-
-            titles.put("Świeżak", "0-50");
-            titles.put("Wkraczający", "51-99");
-            titles.put("Chętny do pomocy", "100-199");
-            titles.put("Młodszy specjalista", "200-499");
-            titles.put("Specjalista na 5+", "500-1499");
-            titles.put("Prawdziwy szef", "2000-X");
-
             titleRepository.saveAll(getPreparedTitles(titles));
             log.info("Adding titles");
         } else
             log.info("All titles exists");
 
         if(roleRepository.count() == 0) {
-            final List<UserRole> roles = List.of(
-                    new UserRole(null, "ROLE_USER", null),
-                    new UserRole(null, "ROLE_ADMIN", null),
-                    new UserRole(null, "ROLE_MODERATOR", null)
-            );
+            final List<UserRole> userRoles = new ArrayList<>();
+            roles.forEach(role -> userRoles.add(new UserRole(null, role, null)));
 
-            roleRepository.saveAll(roles);
+            roleRepository.saveAll(userRoles);
             log.info("Adding roles");
         } else
             log.info("All Roles exists");

@@ -1,0 +1,35 @@
+spring:
+  output:
+    ansi:
+      enabled: ALWAYS
+  datasource:
+    url: 'jdbc:mysql://localhost:3306/scf'
+    username: dawid
+    password: passat
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MariaDBDialect
+        enable_lazy_load_no_trans: true
+    hibernate:
+      ddl-auto: update
+
+JWT_SECRET_PASSWORD: scf_passat
+JWT_EXPIRED_TIME: '1800000'
+JWT_ISSUER: SCF
+
+user:
+  titles:
+    - 'Świerzak': '0-50'
+    - 'Wkraczający': "51-99"
+    - 'Chętny do pomocy': '100-199'
+    - 'Młodszy specjalista': '200-499'
+    - 'Specjalista na 5+': '500-1499'
+    - 'Prawdziwy szef': '2000'
+
+  roles:
+    - 'ROLE_USER'
+    - 'ROLE_ADMIN'
+    - 'ROLE_MODERATOR'
