@@ -34,29 +34,27 @@ public class DatabaseInitializer {
 
     @Bean
     public final void initialize() {
-        log.info(String.valueOf(titles));
-
         if(titleRepository.count() == 0) {
             titleRepository.saveAll(getPreparedTitles(titles));
-            log.info("Adding titles");
+            log.info("Adding User titles");
         } else
-            log.info("All titles exists");
+            log.info("All User titles exists");
 
         if(roleRepository.count() == 0) {
             final List<UserRole> userRoles = new ArrayList<>();
             roles.forEach(role -> userRoles.add(new UserRole(null, role, null)));
 
             roleRepository.saveAll(userRoles);
-            log.info("Adding roles");
+            log.info("Adding user roles");
         } else
-            log.info("All Roles exists");
+            log.info("All User Roles exists");
     }
 
     private List<ForumUserTitle> getPreparedTitles(final Map<String, String> data) {
         final List<ForumUserTitle> titles = new ArrayList<>();
         data.forEach((key, value) -> {
             final ForumUserTitle title = ForumUserTitle.builder()
-                                                        .titleName(value)
+                                                        .titleName(key.substring(2))
                                                         .rangeIntervalPoints(value)
                                                         .build();
             titles.add(title);

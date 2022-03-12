@@ -2,9 +2,11 @@ package pl.scf.security;
 
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -20,7 +22,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import pl.scf.model.AppUser;
 import pl.scf.model.repositories.IAppUserRepository;
-import pl.scf.model.repositories.IUserRoleRepository;
 import pl.scf.security.filter.SCFAuthenticationFilter;
 import pl.scf.security.filter.SCFAuthorizationFilter;
 
@@ -33,32 +34,35 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 @EnableWebSecurity
 @NoArgsConstructor
 @AllArgsConstructor
+@EnableConfigurationProperties
+@ConfigurationProperties(prefix = "jwt-token")
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
+
     @Autowired
     private IAppUserRepository userRepository;
 
-    @Autowired
-    private IUserRoleRepository roleRepository;
+    @Setter
+    private String secret_password;
 
-    @Value("${JWT_SECRET_PASSWORD}")
-    private String secretPassword;
+    @Setter
+    private Long expired_time;
 
-    @Value("${JWT_EXPIRED_TIME}")
-    private Long jwtExpiredTime;
+    @Setter
+    private String issuer;
 
     @Override
-    protected void configure(HttpSecurity http) throws Exception {
+    protected void configure(final HttpSecurity http) throws Exception {
         http.csrf()
                 .disable();
 
         http.sessionManagement()
                 .sessionCreationPolicy(STATELESS);
 
-        http.addFilter(new SCFAuthenticationFilter(authenticationManager(), secretPassword, jwtExpiredTime));
-        http.addFilterBefore(new SCFAuthorizationFilter(secretPassword), UsernamePasswordAuthenticationFilter.class);
+        http.addFilter(new SCFAuthenticationFilter(authenticationManager(), secret_password, expired_time, issuer));
+        http.addFilterBefore(new SCFAuthorizationFilter(secret_password), UsernamePasswordAuthenticationFilter.class);
 
         http.authorizeRequests()
-                        .antMatchers("/login", "/auth/register", "/auth/logout").permitAll();
+                        .antMatchers("/login", "/auth/register", "/logout", "/auth/activate/**").permitAll();
 
         http.authorizeRequests()
                         .anyRequest()
@@ -66,20 +70,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+    protected void configure(final AuthenticationManagerBuilder auth) throws Exception {
         auth.userDetailsService(username -> {
-            final AppUser user = userRepository.findByUsername(username);
             final String notFound = String.format("User %s not found in the database", username);
+            final AppUser user = userRepository.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException(notFound));
+            log.info("User {} found in the database", username);
 
-            if(user == null) {
-                log.error(notFound);
-                throw new UsernameNotFoundException(notFound);
-            } else {
-                log.info("User {} found in the database", username);
+            final List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(user.getRole().getName()));
+            return new User(user.getUsername(), user.getPassword(), authorities);
 
-                final List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(user.getRole().getName()));
-                return new User(user.getUsername(), user.getPassword(), authorities);
-            }
         }).passwordEncoder(passwordEncoder());
     }
 
@@ -92,4 +91,5 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     public AuthenticationManager authenticationManager() throws Exception {
         return super.authenticationManager();
     }
+
 }

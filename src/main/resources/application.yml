@@ -1,4 +1,10 @@
 spring:
+  mail:
+    host: smtp.mailtrap.io
+    port: 465
+    username: 0f1bf8c71d6205
+    password: 03e0793237fc05
+    debug: true
   output:
     ansi:
       enabled: ALWAYS
@@ -16,18 +22,29 @@ spring:
     hibernate:
       ddl-auto: update
 
-JWT_SECRET_PASSWORD: scf_passat
-JWT_EXPIRED_TIME: '1800000'
-JWT_ISSUER: SCF
+### JWT TOKEN ###
+jwt-token:
+  secret_password: scf_passat
+  expired_time: '1800000'
+  issuer: SCF
+
+### Verification email token ###
+ver-token:
+  email_from: scf_server@mail.com
+  secret_password: scf_verification_email
+  email_subject: SCF -> Activate your Account!
+  email_content: >
+    %s, Thank you for using SCF. Your account has been created successfully.
+    The last step is activating your account. Click this link to activate:
+    http://localhost:8080/auth/activateAccount/%s
 
 user:
   titles:
-    - 'Świerzak': '0-50'
-    - 'Wkraczający': "51-99"
-    - 'Chętny do pomocy': '100-199'
-    - 'Młodszy specjalista': '200-499'
-    - 'Specjalista na 5+': '500-1499'
-    - 'Prawdziwy szef': '2000'
+    - 'Nowy': '0-50'
+    - 'Ciekawski': "51-99"
+    - 'Pomocny': '100-199'
+    - 'Specjalista': '200-499'
+    - 'Prawdziwy-szef': '1500'
 
   roles:
     - 'ROLE_USER'

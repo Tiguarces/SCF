@@ -3,6 +3,7 @@ package pl.scf.security.filter;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -13,7 +14,6 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -31,44 +31,50 @@ public class SCFAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
     private final String secretPassword;
     private final Long jwtExpiredTime;
+    private final String jwtIssuer;
 
-    public SCFAuthenticationFilter(AuthenticationManager authenticationManager, String secretPassword, Long jwtExpiredTime) {
+    public SCFAuthenticationFilter(AuthenticationManager authenticationManager, String secretPassword, Long jwtExpiredTime, String jwtIssuer) {
         this.authenticationManager = authenticationManager;
         this.secretPassword = secretPassword;
         this.jwtExpiredTime = jwtExpiredTime;
+        this.jwtIssuer = jwtIssuer;
     }
 
     @Override
-    public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
+    public Authentication attemptAuthentication(final HttpServletRequest request, final HttpServletResponse response) throws AuthenticationException {
         final String username = request.getParameter("username");
         final String password = request.getParameter("password");
-        log.info("Successfully fetched username {} and password {}", username, password);
+        log.info("Successfully fetched username {} and password", username);
 
         final UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(username, password);
         return authenticationManager.authenticate(authenticationToken);
     }
 
+    @Getter
+    private String accessToken;
+
+    @Getter
+    private String refreshToken;
+
     @Override
-    protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException, ServletException {
+    protected void successfulAuthentication(final HttpServletRequest request, final HttpServletResponse response, final FilterChain chain, final Authentication authResult) throws IOException {
         final User user = (User) authResult.getPrincipal();
         final Algorithm algorithm = Algorithm.HMAC512(secretPassword.getBytes(UTF_8));
         final List<String> roles = user.getAuthorities()
                 .stream()
                 .map(GrantedAuthority::getAuthority).toList();
 
-        final String issuer = "SCF";
-
-        final String accessToken = JWT.create()
+        String accessToken = JWT.create()
                 .withSubject(user.getUsername())
                 .withExpiresAt(new Date(System.currentTimeMillis() + jwtExpiredTime))
-                .withIssuer(issuer)
+                .withIssuer(jwtIssuer)
                 .withClaim("roles", roles)
                 .sign(algorithm);
 
-        final String refreshToken = JWT.create()
+        String refreshToken = JWT.create()
                 .withSubject(user.getUsername())
                 .withExpiresAt(new Date(System.currentTimeMillis() + jwtExpiredTime*2))
-                .withIssuer(issuer)
+                .withIssuer(jwtIssuer)
                 .sign(algorithm);
 
         final Map<String, String> tokensContentResponse = new HashMap<>();

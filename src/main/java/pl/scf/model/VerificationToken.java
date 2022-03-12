@@ -1,13 +1,11 @@
 package pl.scf.model;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
-import java.util.Date;
 
 import static javax.persistence.CascadeType.ALL;
 import static javax.persistence.FetchType.LAZY;
@@ -18,20 +16,17 @@ import static javax.persistence.GenerationType.IDENTITY;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class AppUserDetails {
+public class VerificationToken {
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
     private Long id;
 
-    private String email;
-    private Date createdDate;
-    private String nickname;
+    private String token;
 
-    @JsonManagedReference
+    @Column(columnDefinition = "TINYINT(1)")
+    private Integer activated;
+
     @OneToOne(fetch = LAZY, cascade = ALL)
     private AppUser user;
-
-    @OneToOne(fetch = LAZY, cascade = ALL)
-    private ForumUser forumUser;
 }

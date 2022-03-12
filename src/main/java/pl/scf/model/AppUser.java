@@ -33,4 +33,7 @@ public class AppUser {
     @JsonBackReference
     @ManyToOne(fetch = LAZY, cascade = ALL)
     private UserRole role;
+
+    @OneToOne(fetch = LAZY, mappedBy = "user", cascade = ALL)
+    private VerificationToken token;
 }
