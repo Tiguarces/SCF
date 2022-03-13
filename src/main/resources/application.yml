@@ -36,7 +36,7 @@ ver-token:
   email_content: >
     %s, Thank you for using SCF. Your account has been created successfully.
     The last step is activating your account. Click this link to activate:
-    http://localhost:8080/auth/activateAccount/%s
+    http://localhost:8080/auth/activate/%s
 
 user:
   titles:

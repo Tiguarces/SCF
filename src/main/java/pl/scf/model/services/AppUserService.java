@@ -7,6 +7,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import pl.scf.api.model.ActivateEmailResponse;
 import pl.scf.api.model.RegisterResponse;
 import pl.scf.model.*;
 import pl.scf.model.mail.MailNotification;
@@ -120,17 +121,24 @@ public class AppUserService {
         appUser.setUser_details(userDetails);
         appUser.setToken(verificationToken);
 
-        log.info("Saving new AppUser");
-        userRepository.save(appUser);
-
-        mailService.sendEmail(new MailNotification(email_subject, userDetails.getEmail(), email_from, email_content,
+        final boolean isSent = mailService.sendEmail(new MailNotification(email_subject, userDetails.getEmail(), email_from, email_content,
                 verificationToken.getToken(), appUser.getUsername()), mailSender);
 
-        return RegisterResponse.builder()
-                .created(true)
-                .date(new Date(System.currentTimeMillis()))
-                .serverResponse("User created successfully, sending activation email")
-                .build();
+        if(isSent) {
+            log.info("Saving new AppUser");
+            userRepository.save(appUser);
+            return RegisterResponse.builder()
+                    .created(false)
+                    .date(new Date(System.currentTimeMillis()))
+                    .serverResponse("User created successfully, sending activation email")
+                    .build();
+        } else {
+            return RegisterResponse.builder()
+                    .created(true)
+                    .date(new Date(System.currentTimeMillis()))
+                    .serverResponse("User not created, problem with sending activation email")
+                    .build();
+        }
     }
 
     private String generateVerificationToken(final String username) {
@@ -138,12 +146,23 @@ public class AppUserService {
         return UUID.nameUUIDFromBytes(password.getBytes(UTF_8)).toString();
     }
 
-    public final void activateAccount(final String token) {
-        final VerificationToken verificationToken = tokenRepository.findByToken(token).orElseThrow(() -> new RuntimeException("Token not found in the database"));
-        verificationToken.setActivated(1);
+    public final ActivateEmailResponse activateAccount(final String token) {
+        final VerificationToken verificationToken = tokenRepository.findByToken(token);
+        if(verificationToken == null) {
+            return ActivateEmailResponse.builder()
+                    .activated(false)
+                    .response("Fail while activating account")
+                    .date(new Date(System.currentTimeMillis()))
+                    .build();
+        } verificationToken.setActivated(1);
 
         log.info("Account {} activated", verificationToken.getUser().getUsername());
         tokenRepository.save(verificationToken);
+        return ActivateEmailResponse.builder()
+                .activated(true)
+                .response("Email activated successfully")
+                .date(new Date(System.currentTimeMillis()))
+                .build();
     }
 
     public final AppUser getById(final Long id) {

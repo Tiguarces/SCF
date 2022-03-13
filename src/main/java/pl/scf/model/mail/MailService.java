@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class MailService {
     @Async
-    public final void sendEmail(final MailNotification mailNotification, final JavaMailSender mailSender) {
+    public final boolean sendEmail(final MailNotification mailNotification, final JavaMailSender mailSender) {
         final MimeMessagePreparator messagePreparator = (mimeMessage -> {
             final MimeMessageHelper messageHelper = new MimeMessageHelper(mimeMessage);
 
@@ -28,6 +28,7 @@ public class MailService {
             log.info("Email was sent successfully to {}", mailNotification.getUsername());
         } catch (MailException exception) {
             log.error("Errors while sending email to {} | {}", mailNotification.getUsername(), exception.getMessage());
-        }
+            return false;
+        } return true;
     }
 }

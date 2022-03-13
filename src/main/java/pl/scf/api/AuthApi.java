@@ -3,6 +3,7 @@ package pl.scf.api;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import pl.scf.api.model.ActivateEmailResponse;
 import pl.scf.api.model.RegisterResponse;
 import pl.scf.model.AppUser;
 import pl.scf.model.requests.RegisterRequest;
@@ -27,12 +28,12 @@ public class AuthApi {
                 .body(response);
     }
 
-    @PostMapping("/activate/{token}")
-    public final ResponseEntity<String> activateAccount(@PathVariable final String token) {
-        userService.activateAccount(token);
+    @GetMapping("/activate/{token}")
+    public final ResponseEntity<ActivateEmailResponse> activateAccount(@PathVariable final String token) {
+        final ActivateEmailResponse response = userService.activateAccount(token);
         return ResponseEntity
                 .status(OK)
-                .body("Email activated");
+                .body(response);
     }
 
     @GetMapping("/all")
