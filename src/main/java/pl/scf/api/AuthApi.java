@@ -36,6 +36,13 @@ public class AuthApi {
                 .body(response);
     }
 
+    @GetMapping("/email/sendAgain/{userId}")
+    public final ResponseEntity<String> sendActivationEmailAgain(@PathVariable final Long userId) {
+        return ResponseEntity
+                .status(OK)
+                .body(userService.sendEmailAgain(userId));
+    }
+
     @GetMapping("/all")
     public final List<AppUser> getAll() {
         return userService.getAll();

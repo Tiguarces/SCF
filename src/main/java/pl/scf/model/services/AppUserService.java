@@ -17,6 +17,7 @@ import pl.scf.model.requests.RegisterRequest;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Random;
 import java.util.UUID;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -191,5 +192,27 @@ public class AppUserService {
     public final List<AppUser> getAll() {
         log.info("Fetching all AppUsers");
         return userRepository.findAll();
+    }
+
+    private String response;
+    public final String sendEmailAgain(final Long userId) {
+        userRepository.findById(userId).ifPresentOrElse(
+                (value) -> {
+                    final int randomValue = new Random().nextInt(value.getUsername().length()*2);
+                    final String newToken = generateVerificationToken(value.getUsername().concat("sendAgain" + randomValue));
+
+                    final AppUserDetails userDetails = value.getUser_details();
+                    final VerificationToken verificationToken = value.getToken();
+
+                    verificationToken.setToken(newToken);
+                    tokenRepository.save(verificationToken);
+                    response = "Email sent again";
+
+                    log.info("Update verification email, sending email again");
+                    mailService.sendEmail(new MailNotification(email_subject, userDetails.getEmail(), email_from, email_content,
+                            verificationToken.getToken(), value.getUsername()), mailSender);
+                },
+                () -> response = "Wrong userId, not sent"
+        ); return response;
     }
 }

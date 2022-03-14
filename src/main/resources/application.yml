@@ -38,6 +38,7 @@ ver-token:
     The last step is activating your account. Click this link to activate:
     http://localhost:8080/auth/activate/%s
 
+# Database Initializer
 user:
   titles:
     - 'Nowy': '0-50'

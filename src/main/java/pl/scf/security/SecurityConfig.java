@@ -62,7 +62,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.addFilterBefore(new SCFAuthorizationFilter(secret_password), UsernamePasswordAuthenticationFilter.class);
 
         http.authorizeRequests()
-                        .antMatchers("/login", "/auth/register", "/logout", "/auth/activate/**").permitAll();
+                        .antMatchers("/login", "/auth/register", "/logout", "/auth/activate/**", "/auth/email/sendAgain/**").permitAll();
 
         http.authorizeRequests()
                         .anyRequest()
