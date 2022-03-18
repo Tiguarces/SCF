@@ -38,7 +38,15 @@ ver-token:
     The last step is activating your account. Click this link to activate:
     http://localhost:8080/auth/activate/%s
 
-# Database Initializer
+### Activation email message ###
+#activation:
+#  messages:
+#    positive: 'Możesz śmiało korzystać ze swojego konta'
+#    negative: 'Nie udało sie potwierdzić konta'
+#    exists: 'Twoje konto już istnieje i jest potwierdzone'
+#
+
+### Database Initializer ###
 user:
   titles:
     - 'Nowy': '0-50'

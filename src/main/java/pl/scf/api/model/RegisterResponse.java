@@ -9,7 +9,7 @@ import java.util.Date;
 @Data
 @Builder
 @AllArgsConstructor
-public class RegisterResponse {
+public final class RegisterResponse {
     private Boolean created;
     private String serverResponse;
     private Date date;

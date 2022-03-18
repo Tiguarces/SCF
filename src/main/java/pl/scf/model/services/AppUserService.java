@@ -9,6 +9,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import pl.scf.api.model.ActivateEmailResponse;
 import pl.scf.api.model.RegisterResponse;
+import pl.scf.api.model.UniversalResponse;
 import pl.scf.model.*;
 import pl.scf.model.mail.MailNotification;
 import pl.scf.model.mail.MailService;
@@ -155,13 +156,26 @@ public class AppUserService {
                     .response("Fail while activating account")
                     .date(new Date(System.currentTimeMillis()))
                     .build();
-        } verificationToken.setActivated(1);
+        }
 
-        log.info("Account {} activated", verificationToken.getUser().getUsername());
-        tokenRepository.save(verificationToken);
+        String response = "Email activated successfully";
+        if(verificationToken.getActivated() == 0) {
+            verificationToken.setActivated(1);
+            log.info("Account {} activated", verificationToken.getUser().getUsername());
+
+            tokenRepository.save(verificationToken);
+        } else {
+            log.info("Account {} has activated yet", verificationToken.getUser().getUsername());
+            response = "Account is active";
+        }
+
+        final String nickname = verificationToken.getUser()
+                .getUser_details().getNickname();
+
         return ActivateEmailResponse.builder()
                 .activated(true)
-                .response("Email activated successfully")
+                .nickname(nickname)
+                .response(response)
                 .date(new Date(System.currentTimeMillis()))
                 .build();
     }
@@ -176,17 +190,49 @@ public class AppUserService {
         return userRepository.findByUsername(username).orElse(new AppUser());
     }
 
-    public final void update(final AppUser appUser) {
-        appUser.setPassword(passwordEncoder.encode(appUser.getPassword()));
-        log.info("Encoding new AppUser password");
+    public final UniversalResponse update(final AppUser appUser) {
+        try {
+            appUser.setPassword(passwordEncoder.encode(appUser.getPassword()));
+            log.info("Encoding new AppUser password");
 
-        log.info("Updating AppUser with id: {}", appUser.getId());
-        userRepository.save(appUser);
+            log.info("Updating AppUser with id: {}", appUser.getId());
+            userRepository.save(appUser);
+
+            return UniversalResponse.builder()
+                    .date(new Date(System.currentTimeMillis()))
+                    .response("User updated successfully")
+                    .success(true)
+                    .build();
+
+        } catch (final Exception exception) {
+            log.warn("User update fail, message: {}", exception.getMessage());
+            return UniversalResponse.builder()
+                    .date(new Date(System.currentTimeMillis()))
+                    .response("User updated failed")
+                    .success(false)
+                    .build();
+        }
     }
 
-    public final void delete(final Long id) {
-        log.info("Deleting AppUser with id: {}", id);
-        userRepository.deleteById(id);
+    public final UniversalResponse delete(final Long id) {
+        try {
+            log.info("Deleting AppUser with id: {}", id);
+            userRepository.deleteById(id);
+
+            return UniversalResponse.builder()
+                    .date(new Date(System.currentTimeMillis()))
+                    .response("User deleted successfully")
+                    .success(true)
+                    .build();
+
+        } catch (final Exception exception) {
+            log.warn("User delete fail, message: {}", exception.getMessage());
+            return UniversalResponse.builder()
+                    .date(new Date(System.currentTimeMillis()))
+                    .response("User deleted failed")
+                    .success(false)
+                    .build();
+        }
     }
 
     public final List<AppUser> getAll() {
@@ -194,8 +240,8 @@ public class AppUserService {
         return userRepository.findAll();
     }
 
-    private String response;
-    public final String sendEmailAgain(final Long userId) {
+    private UniversalResponse response;
+    public final UniversalResponse sendEmailAgain(final Long userId) {
         userRepository.findById(userId).ifPresentOrElse(
                 (value) -> {
                     final int randomValue = new Random().nextInt(value.getUsername().length()*2);
@@ -206,13 +252,21 @@ public class AppUserService {
 
                     verificationToken.setToken(newToken);
                     tokenRepository.save(verificationToken);
-                    response = "Email sent again";
+                    response = UniversalResponse.builder()
+                            .date(new Date(System.currentTimeMillis()))
+                            .response("Email sent again successfully")
+                            .success(true)
+                            .build();
 
                     log.info("Update verification email, sending email again");
                     mailService.sendEmail(new MailNotification(email_subject, userDetails.getEmail(), email_from, email_content,
                             verificationToken.getToken(), value.getUsername()), mailSender);
                 },
-                () -> response = "Wrong userId, not sent"
+                () -> response = UniversalResponse.builder()
+                        .date(new Date(System.currentTimeMillis()))
+                        .response("Email not send again, fail")
+                        .success(false)
+                        .build()
         ); return response;
     }
 }

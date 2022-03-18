@@ -26,7 +26,7 @@ public class MailService {
         try {
             mailSender.send(messagePreparator);
             log.info("Email was sent successfully to {}", mailNotification.getUsername());
-        } catch (MailException exception) {
+        } catch (final MailException exception) {
             log.error("Errors while sending email to {} | {}", mailNotification.getUsername(), exception.getMessage());
             return false;
         } return true;

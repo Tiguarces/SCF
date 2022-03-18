@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+
+<html lang="pl" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>SCF - aktywacja konta</title>
+</head>
+
+<style>
+    body {
+        background-color: skyblue;
+        margin: 0;
+    }
+
+    main {
+        width: 100%;
+        height: 100%;
+        text-align: center;
+
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: center;
+    }
+
+    header {
+        margin-top: 15%;
+        padding: 50px;
+        min-width: 80%;
+        height: 35%;
+        background-color: orange;
+        box-sizing: border-box;
+
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    header div {
+        min-width: 45%;
+    }
+
+    article {
+        min-width: 80%;
+        height: 65%;
+        background-color: white;
+    }
+
+    article section {
+        width: 100%;
+        padding: 25px;
+        box-sizing: border-box;
+    }
+</style>
+
+<body>
+    <main>
+        <header>
+            <div> SCF Aktywacja konta </div>
+            <div th:text="${date}"></div>
+        </header>
+
+        <article>
+            <section>
+                <span th:text="${nickname}"></span>, Twoje konto zostało właśnie aktywowane! <br>
+                Stałeś się częścią naszej społeczności. Już dziś możesz śmiało zacząć korzystać z naszego serwisu
+                komputerowego. <br>
+                <a href="http://localhost:4200"> Przejdź do SCF </a>
+            </section>
+        </article>
+    </main>
+</body>
+
+</html>
