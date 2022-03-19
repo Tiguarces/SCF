@@ -1,5 +1,7 @@
 package pl.scf.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -9,6 +11,7 @@ import javax.persistence.*;
 import java.util.Set;
 
 import static javax.persistence.CascadeType.ALL;
+import static javax.persistence.FetchType.EAGER;
 import static javax.persistence.FetchType.LAZY;
 import static javax.persistence.GenerationType.IDENTITY;
 
@@ -26,21 +29,27 @@ public class ForumUser {
     private Integer reputation;
     private Integer visitors;
 
+    @JsonBackReference
     @OneToOne(fetch = LAZY, mappedBy = "user_details", cascade = ALL)
     private AppUser user;
 
-    @OneToMany(fetch = LAZY, mappedBy = "user", cascade = ALL)
+    @JsonBackReference
+    @OneToMany(fetch = EAGER, mappedBy = "user", cascade = ALL)
     private Set<Answer> answers;
 
-    @OneToOne(fetch = LAZY, cascade = ALL)
+    @JsonManagedReference
+    @OneToOne(fetch = EAGER, cascade = ALL)
     private ForumUserDescription description;
 
-    @OneToMany(fetch = LAZY, mappedBy = "user", cascade = ALL)
+    @JsonBackReference
+    @OneToMany(fetch = EAGER, mappedBy = "user", cascade = ALL)
     private Set<Topic> topics;
 
-    @ManyToOne(fetch = LAZY, cascade = ALL)
+    @JsonBackReference
+    @ManyToOne(fetch = EAGER, cascade = ALL)
     private ForumUserTitle title;
 
-    @OneToOne(fetch = LAZY, cascade = ALL)
+    @JsonManagedReference
+    @OneToOne(fetch = EAGER, cascade = ALL)
     private ForumUserImages images;
 }

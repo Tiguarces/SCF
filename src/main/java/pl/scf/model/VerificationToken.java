@@ -1,5 +1,6 @@
 package pl.scf.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -27,6 +28,7 @@ public class VerificationToken {
     @Column(columnDefinition = "TINYINT(1)")
     private Integer activated;
 
+    @JsonBackReference
     @OneToOne(fetch = LAZY, cascade = ALL)
     private AppUser user;
 }

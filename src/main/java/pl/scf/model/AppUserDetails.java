@@ -1,16 +1,20 @@
 package pl.scf.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.OneToOne;
 import java.util.Date;
 
 import static javax.persistence.CascadeType.ALL;
-import static javax.persistence.FetchType.LAZY;
+import static javax.persistence.FetchType.EAGER;
 import static javax.persistence.GenerationType.IDENTITY;
 
 @Data
@@ -28,10 +32,11 @@ public class AppUserDetails {
     private Date createdDate;
     private String nickname;
 
-    @JsonManagedReference
-    @OneToOne(fetch = LAZY, cascade = ALL)
+    @JsonBackReference
+    @OneToOne(fetch = EAGER, cascade = ALL)
     private AppUser user;
 
-    @OneToOne(fetch = LAZY, cascade = ALL)
+    @JsonManagedReference
+    @OneToOne(fetch = EAGER, cascade = ALL)
     private ForumUser forumUser;
 }

@@ -1,5 +1,6 @@
 package pl.scf.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -25,9 +26,11 @@ public class Answer {
 
     private Date createdDate;
 
+    @JsonManagedReference
     @ManyToOne(fetch = LAZY)
     private Topic topic;
 
+    @JsonManagedReference
     @ManyToOne(fetch = LAZY)
     private ForumUser user;
 }

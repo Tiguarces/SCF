@@ -1,5 +1,6 @@
 package pl.scf.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -22,6 +23,7 @@ public class ForumUserDescription {
     @Lob
     private String content;
 
+    @JsonBackReference
     @OneToOne(fetch = LAZY, mappedBy = "user")
     private ForumUser user;
 }

@@ -56,16 +56,16 @@ public class AuthApi {
         return model;
     }
 
-    @GetMapping("/user/{id}")
-    @RolesAllowed({ "ROLE_ADMIN", "ROLE_USER", "ROLE_MODERATOR" })
+    @GetMapping("/user/id/{id}")
+    @RolesAllowed({ "ROLE_ADMIN", "ROLE_MODERATOR" })
     public final ResponseEntity<AppUser> getUserById(@PathVariable("id") final Long id) {
         return ResponseEntity
                 .status(OK)
                 .body(userService.getById(id));
     }
 
-    @GetMapping("/user/{username}")
-    @RolesAllowed({ "ROLE_ADMIN", "ROLE_USER", "ROLE_MODERATOR" })
+    @GetMapping("/user/name/{username}")
+    @RolesAllowed({ "ROLE_ADMIN", "ROLE_MODERATOR" })
     public final ResponseEntity<AppUser> getUserByUsername(@PathVariable("username") final String username) {
         return ResponseEntity
                 .status(OK)
@@ -73,7 +73,7 @@ public class AuthApi {
     }
 
     @PostMapping("/user/update")
-    @RolesAllowed({ "ROLE_ADMIN", "ROLE_USER", "ROLE_MODERATOR" })
+    @RolesAllowed({ "ROLE_ADMIN", "ROLE_MODERATOR" })
     public final ResponseEntity<UniversalResponse> updateUser(@RequestBody final AppUser user) {
         return ResponseEntity
                 .status(OK)

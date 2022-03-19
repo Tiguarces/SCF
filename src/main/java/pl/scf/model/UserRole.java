@@ -1,6 +1,6 @@
 package pl.scf.model;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -28,7 +28,7 @@ public class UserRole {
     @Column(nullable = false)
     private String name;
 
-    @JsonManagedReference
+    @JsonBackReference
     @OneToMany(fetch = LAZY, mappedBy = "role", cascade = ALL)
     private Set<AppUser> user;
 }

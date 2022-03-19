@@ -1,5 +1,6 @@
 package pl.scf.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -20,9 +21,11 @@ public class Topic {
     @GeneratedValue(strategy = IDENTITY)
     private Long id;
 
+    @JsonManagedReference
     @OneToMany(fetch = LAZY, mappedBy = "topic")
     private Set<Answer> answers;
 
+    @JsonManagedReference
     @ManyToOne(fetch = LAZY)
     private ForumUser user;
 }

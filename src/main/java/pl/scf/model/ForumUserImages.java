@@ -1,5 +1,6 @@
 package pl.scf.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -25,6 +26,7 @@ public class ForumUserImages {
     @Column(name = "backgroundURL")
     private String backgroundImageURL;
 
+    @JsonBackReference
     @OneToOne(fetch = LAZY, mappedBy = "user")
     private ForumUser user;
 }
