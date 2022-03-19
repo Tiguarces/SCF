@@ -38,7 +38,7 @@ public class ForumUser {
     private Set<Answer> answers;
 
     @JsonManagedReference
-    @OneToOne(fetch = EAGER, cascade = ALL)
+    @OneToOne(cascade = ALL)
     private ForumUserDescription description;
 
     @JsonBackReference
@@ -50,6 +50,6 @@ public class ForumUser {
     private ForumUserTitle title;
 
     @JsonManagedReference
-    @OneToOne(fetch = EAGER, cascade = ALL)
+    @OneToOne(cascade = ALL)
     private ForumUserImages images;
 }

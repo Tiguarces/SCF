@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import pl.scf.api.model.ActivateEmailResponse;
 import pl.scf.api.model.RegisterResponse;
 import pl.scf.api.model.UniversalResponse;
+import pl.scf.api.model.UpdateUserRequest;
 import pl.scf.model.*;
 import pl.scf.model.mail.MailNotification;
 import pl.scf.model.mail.MailService;
@@ -179,28 +180,28 @@ public class AppUserService {
         return userRepository.findByUsername(username).orElse(new AppUser());
     }
 
-    public final UniversalResponse update(final AppUser appUser) {
-        try {
-            appUser.setPassword(passwordEncoder.encode(appUser.getPassword()));
-            log.info("Encoding new AppUser password");
+    private UniversalResponse updateResponse;
+    public final UniversalResponse update(final UpdateUserRequest request) {
+        request.setPassword(passwordEncoder.encode(request.getPassword()));
+        log.info("Encoding new AppUser password");
 
-            log.info("Updating AppUser with id: {}", appUser.getId());
-            userRepository.save(appUser);
+        userRepository.findByUsername(request.getUsername()).ifPresentOrElse(
+                (value) -> {
+                    log.info("Updating AppUser with id: {}", value.getId());
+                    userRepository.save(value);
 
-            return UniversalResponse.builder()
-                    .date(new Date(System.currentTimeMillis()))
-                    .response("User updated successfully")
-                    .success(true)
-                    .build();
-
-        } catch (final Exception exception) {
-            log.warn("User update fail, message: {}", exception.getMessage());
-            return UniversalResponse.builder()
-                    .date(new Date(System.currentTimeMillis()))
-                    .response("User updated failed")
-                    .success(false)
-                    .build();
-        }
+                    response = UniversalResponse.builder()
+                            .date(new Date(System.currentTimeMillis()))
+                            .response("User updated successfully")
+                            .success(true)
+                            .build();
+                },
+                () -> updateResponse = UniversalResponse.builder()
+                        .date(new Date(System.currentTimeMillis()))
+                        .response("User updated failed")
+                        .success(false)
+                        .build()
+        ); return updateResponse;
     }
 
     public final UniversalResponse delete(final Long id) {

@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import javax.persistence.*;
 
 import static javax.persistence.CascadeType.ALL;
+import static javax.persistence.CascadeType.MERGE;
 import static javax.persistence.FetchType.EAGER;
 import static javax.persistence.FetchType.LAZY;
 import static javax.persistence.GenerationType.IDENTITY;
@@ -28,11 +29,11 @@ public class AppUser {
     private String password;
 
     @JsonManagedReference
-    @OneToOne(fetch = EAGER, mappedBy = "user", cascade = ALL)
+    @OneToOne(mappedBy = "user", cascade = ALL)
     private AppUserDetails user_details;
 
     @JsonManagedReference
-    @ManyToOne(fetch = EAGER, cascade = ALL)
+    @ManyToOne(fetch = EAGER, cascade = MERGE)
     private UserRole role;
 
     @JsonManagedReference

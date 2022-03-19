@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 import javax.persistence.*;
 import java.util.Set;
 
-import static javax.persistence.CascadeType.ALL;
+import static javax.persistence.CascadeType.MERGE;
 import static javax.persistence.FetchType.LAZY;
 import static javax.persistence.GenerationType.IDENTITY;
 
@@ -29,6 +29,6 @@ public class UserRole {
     private String name;
 
     @JsonBackReference
-    @OneToMany(fetch = LAZY, mappedBy = "role", cascade = ALL)
+    @OneToMany(fetch = LAZY, mappedBy = "role", cascade = MERGE)
     private Set<AppUser> user;
 }

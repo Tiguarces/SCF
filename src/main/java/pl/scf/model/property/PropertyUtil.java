@@ -24,4 +24,16 @@ public class PropertyUtil {
     public InitializerProperty initializerProperty() {
         return new InitializerProperty();
     }
+
+    @Bean
+    @ConfigurationProperties(prefix = "jwt-token")
+    public JWTProperty jwtProperty() {
+        return new JWTProperty();
+    }
+
+    @Bean
+    @ConfigurationProperties(prefix = "admin-account")
+    public AdministratorAccountProperty administratorAccountProperty() {
+        return new AdministratorAccountProperty();
+    }
 }

@@ -1,12 +1,7 @@
 package pl.scf.security;
 
 import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -21,6 +16,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import pl.scf.model.AppUser;
+import pl.scf.model.property.JWTProperty;
 import pl.scf.model.repositories.IAppUserRepository;
 import pl.scf.security.filter.SCFAuthenticationFilter;
 import pl.scf.security.filter.SCFAuthorizationFilter;
@@ -32,23 +28,10 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 @Slf4j
 @Configuration
 @EnableWebSecurity
-@NoArgsConstructor
 @AllArgsConstructor
-@EnableConfigurationProperties
-@ConfigurationProperties(prefix = "jwt-token")
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
-
-    @Autowired
     private IAppUserRepository userRepository;
-
-    @Setter
-    private String secret_password;
-
-    @Setter
-    private Long expired_time;
-
-    @Setter
-    private String issuer;
+    private JWTProperty jwtProperty;
 
     @Override
     protected void configure(final HttpSecurity http) throws Exception {
@@ -58,13 +41,14 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.sessionManagement()
                 .sessionCreationPolicy(STATELESS);
 
-        http.addFilter(new SCFAuthenticationFilter(authenticationManager(), secret_password, expired_time, issuer));
-        http.addFilterBefore(new SCFAuthorizationFilter(secret_password), UsernamePasswordAuthenticationFilter.class);
+        http.addFilter(new SCFAuthenticationFilter(authenticationManager(), jwtProperty.getSecret_password(), jwtProperty.getExpired_time(), jwtProperty.getIssuer()));
+        http.addFilterBefore(new SCFAuthorizationFilter(jwtProperty.getSecret_password()), UsernamePasswordAuthenticationFilter.class);
 
         http.authorizeRequests()
                         .antMatchers("/login", "/auth/register", "/logout", "/auth/activate/**", "/auth/email/sendAgain/**").permitAll();
 
         http.logout()
+                .logoutUrl("/logout")
                 .permitAll();
 
         http.authorizeRequests()

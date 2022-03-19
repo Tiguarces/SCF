@@ -26,7 +26,7 @@ public class UserRoleService {
 
     public final UserRole getByName(final String name) {
         log.info("Fetching role with name: {}", name);
-        return roleRepository.findByName(name).orElse(new UserRole());
+        return roleRepository.findByName(name);
     }
 
     public final void update(final UserRole role) {

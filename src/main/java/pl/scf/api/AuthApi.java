@@ -7,6 +7,7 @@ import org.springframework.web.servlet.ModelAndView;
 import pl.scf.api.model.ActivateEmailResponse;
 import pl.scf.api.model.RegisterResponse;
 import pl.scf.api.model.UniversalResponse;
+import pl.scf.api.model.UpdateUserRequest;
 import pl.scf.model.AppUser;
 import pl.scf.model.property.ActivateAccountProperty;
 import pl.scf.model.requests.RegisterRequest;
@@ -72,15 +73,15 @@ public class AuthApi {
                 .body(userService.getByUsername(username));
     }
 
-    @PostMapping("/user/update")
+    @PutMapping("/user/update")
     @RolesAllowed({ "ROLE_ADMIN", "ROLE_MODERATOR" })
-    public final ResponseEntity<UniversalResponse> updateUser(@RequestBody final AppUser user) {
+    public final ResponseEntity<UniversalResponse> updateUser(@RequestBody final UpdateUserRequest request) {
         return ResponseEntity
                 .status(OK)
-                .body(userService.update(user));
+                .body(userService.update(request));
     }
 
-    @GetMapping("/user/delete/{id}")
+    @DeleteMapping("/user/delete/{id}")
     @RolesAllowed({ "ROLE_ADMIN", "ROLE_MODERATOR" })
     public final ResponseEntity<UniversalResponse> getUserByUsername(@PathVariable("id") final Long id) {
         return ResponseEntity

@@ -14,7 +14,6 @@ import javax.persistence.OneToOne;
 import java.util.Date;
 
 import static javax.persistence.CascadeType.ALL;
-import static javax.persistence.FetchType.EAGER;
 import static javax.persistence.GenerationType.IDENTITY;
 
 @Data
@@ -33,10 +32,10 @@ public class AppUserDetails {
     private String nickname;
 
     @JsonBackReference
-    @OneToOne(fetch = EAGER, cascade = ALL)
+    @OneToOne(cascade = ALL)
     private AppUser user;
 
     @JsonManagedReference
-    @OneToOne(fetch = EAGER, cascade = ALL)
+    @OneToOne(cascade = ALL)
     private ForumUser forumUser;
 }
