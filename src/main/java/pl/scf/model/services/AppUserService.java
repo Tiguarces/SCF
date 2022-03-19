@@ -1,9 +1,6 @@
 package pl.scf.model.services;
 
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -13,6 +10,7 @@ import pl.scf.api.model.UniversalResponse;
 import pl.scf.model.*;
 import pl.scf.model.mail.MailNotification;
 import pl.scf.model.mail.MailService;
+import pl.scf.model.property.EmailProperty;
 import pl.scf.model.repositories.*;
 import pl.scf.model.requests.RegisterRequest;
 
@@ -25,8 +23,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 @Slf4j
 @Service
-@EnableConfigurationProperties
-@ConfigurationProperties(prefix = "ver-token")
 public class AppUserService {
     private final IAppUserRepository userRepository;
     private final IUserRoleRepository roleRepository;
@@ -36,21 +32,10 @@ public class AppUserService {
     private final PasswordEncoder passwordEncoder;
     private final MailService mailService;
     private final JavaMailSender mailSender;
-
-    @Setter
-    private String secret_password;
-
-    @Setter
-    private String email_subject;
-
-    @Setter
-    private String email_content;
-
-    @Setter
-    private String email_from;
+    private final EmailProperty emailProperty;
 
     public AppUserService(IAppUserRepository userRepository, IUserRoleRepository roleRepository, IAppUserDetailsRepository detailsRepository, IForumUserTitleRepository titleRepository,
-                          IVerificationTokenRepository tokenRepository, PasswordEncoder passwordEncoder, MailService mailService, JavaMailSender mailSender) {
+                          IVerificationTokenRepository tokenRepository, PasswordEncoder passwordEncoder, MailService mailService, JavaMailSender mailSender, EmailProperty emailProperty) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.detailsRepository = detailsRepository;
@@ -59,6 +44,7 @@ public class AppUserService {
         this.passwordEncoder = passwordEncoder;
         this.mailService = mailService;
         this.mailSender = mailSender;
+        this.emailProperty = emailProperty;
     }
 
     public final RegisterResponse register(final RegisterRequest request) {
@@ -123,7 +109,7 @@ public class AppUserService {
         appUser.setUser_details(userDetails);
         appUser.setToken(verificationToken);
 
-        final boolean isSent = mailService.sendEmail(new MailNotification(email_subject, userDetails.getEmail(), email_from, email_content,
+        final boolean isSent = mailService.sendEmail(new MailNotification(emailProperty.getEmail_subject(), userDetails.getEmail(), emailProperty.getEmail_from(), emailProperty.getEmail_content(),
                 verificationToken.getToken(), appUser.getUsername()), mailSender);
 
         if(isSent) {
@@ -144,7 +130,7 @@ public class AppUserService {
     }
 
     private String generateVerificationToken(final String username) {
-        final String password = secret_password.concat(username);
+        final String password = emailProperty.getSecret_password().concat(username);
         return UUID.nameUUIDFromBytes(password.getBytes(UTF_8)).toString();
     }
 
@@ -159,10 +145,13 @@ public class AppUserService {
         }
 
         String response = "Email activated successfully";
+        boolean activated = false;
+
         if(verificationToken.getActivated() == 0) {
             verificationToken.setActivated(1);
             log.info("Account {} activated", verificationToken.getUser().getUsername());
 
+            activated = true;
             tokenRepository.save(verificationToken);
         } else {
             log.info("Account {} has activated yet", verificationToken.getUser().getUsername());
@@ -173,7 +162,7 @@ public class AppUserService {
                 .getUser_details().getNickname();
 
         return ActivateEmailResponse.builder()
-                .activated(true)
+                .activated(activated)
                 .nickname(nickname)
                 .response(response)
                 .date(new Date(System.currentTimeMillis()))
@@ -259,7 +248,7 @@ public class AppUserService {
                             .build();
 
                     log.info("Update verification email, sending email again");
-                    mailService.sendEmail(new MailNotification(email_subject, userDetails.getEmail(), email_from, email_content,
+                    mailService.sendEmail(new MailNotification(emailProperty.getEmail_subject(), userDetails.getEmail(), emailProperty.getEmail_from(), emailProperty.getEmail_content(),
                             verificationToken.getToken(), value.getUsername()), mailSender);
                 },
                 () -> response = UniversalResponse.builder()

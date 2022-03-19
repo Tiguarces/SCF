@@ -8,6 +8,7 @@ import pl.scf.api.model.ActivateEmailResponse;
 import pl.scf.api.model.RegisterResponse;
 import pl.scf.api.model.UniversalResponse;
 import pl.scf.model.AppUser;
+import pl.scf.model.property.ActivateAccountProperty;
 import pl.scf.model.requests.RegisterRequest;
 import pl.scf.model.services.AppUserService;
 
@@ -22,6 +23,7 @@ import static org.springframework.http.HttpStatus.OK;
 @RequestMapping("/auth")
 public class AuthApi {
     private final AppUserService userService;
+    private final ActivateAccountProperty activateAccountProperty;
 
     @PostMapping("/register")
     public final ResponseEntity<RegisterResponse> registerUser(@RequestBody final RegisterRequest request) {
@@ -44,9 +46,9 @@ public class AuthApi {
         final ModelAndView model = new ModelAndView("Verification");
 
         if (response.getActivated())
-            model.addObject("message", "Email został potwierdzony");
+            model.addObject("message", activateAccountProperty.getPositive());
         else
-            model.addObject("message", "Email nie został potwierdzony");
+            model.addObject("message", activateAccountProperty.getExists());
 
         model.addObject("date", response.getDate());
         model.addObject("nickname", response.getNickname());

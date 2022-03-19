@@ -39,12 +39,10 @@ ver-token:
     http://localhost:8080/auth/activate/%s
 
 ### Activation email message ###
-#activation:
-#  messages:
-#    positive: 'Możesz śmiało korzystać ze swojego konta'
-#    negative: 'Nie udało sie potwierdzić konta'
-#    exists: 'Twoje konto już istnieje i jest potwierdzone'
-#
+activation-messages:
+  positive: 'Możesz śmiało korzystać ze swojego konta'
+  exists: 'Twoje konto już istnieje i jest potwierdzone'
+
 
 ### Database Initializer ###
 user:

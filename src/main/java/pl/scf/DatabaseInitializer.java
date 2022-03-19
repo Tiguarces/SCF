@@ -1,14 +1,12 @@
 package pl.scf;
 
 import lombok.AllArgsConstructor;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 import pl.scf.model.ForumUserTitle;
 import pl.scf.model.UserRole;
+import pl.scf.model.property.InitializerProperty;
 import pl.scf.model.repositories.IForumUserTitleRepository;
 import pl.scf.model.repositories.IUserRoleRepository;
 
@@ -19,21 +17,16 @@ import java.util.Map;
 @Slf4j
 @Component
 @AllArgsConstructor
-@EnableConfigurationProperties
-@ConfigurationProperties(prefix = "user")
 public class DatabaseInitializer {
-
     private IForumUserTitleRepository titleRepository;
     private IUserRoleRepository roleRepository;
-
-    @Setter
-    private Map<String, String> titles;
-
-    @Setter
-    private List<String> roles;
+    private InitializerProperty initializerProperty;
 
     @Bean
     public final void initialize() {
+        final var roles = initializerProperty.getRoles();
+        final var titles = initializerProperty.getTitles();
+
         if(titleRepository.count() == 0) {
             titleRepository.saveAll(getPreparedTitles(titles));
             log.info("Adding User titles");
