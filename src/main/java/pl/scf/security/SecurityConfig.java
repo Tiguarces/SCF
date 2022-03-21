@@ -33,6 +33,57 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private IAppUserRepository userRepository;
     private JWTProperty jwtProperty;
 
+    private final String[] allowedRoutes = new String[] {
+            "/login",
+            "/logout",
+
+            "/auth/register",
+            "/auth/activate/**",
+            "/auth/email/sendAgain/**"
+    };
+
+    private final String[] administrator_moderatorRoutes = new String[] {
+            "/auth/**",
+            "/topic/**",
+            "/token/**",
+            "/forum/**",
+            "/roles/**",
+            "/userDetails/**",
+            "/forumUser/images/**",
+            "/forumUser/description/**",
+            "/forumUser/title/**",
+    };
+
+    private final String[] forUserRoutes = new String[] {
+            "/answer/add",
+            "/answer/update",
+            "/answer/delete/{id}",
+            "/answer/get/topic/{id}",
+            "/answer/get/user/{id}",
+
+            "/forum/user/update",
+            "/forum/user/username/{username}",
+
+            "/auth/auth/user/update",
+            "/auth/user/delete/{id}",
+
+            "/token/update",
+
+            "/userDetails/update",
+            "/userDetails/get/username/{username}",
+
+            "/forumUser/description/update",
+
+            "/forumUser/images/all",
+            "/forumUser/images/update",
+
+            "/topic/add",
+            "/topic/update",
+            "/topic/delete/{id}",
+            "/topic/get/answers/id/{id}",
+            "/topic/get/user/id/{id}"
+    };
+
     @Override
     protected void configure(final HttpSecurity http) throws Exception {
         http.csrf()
@@ -45,7 +96,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.addFilterBefore(new SCFAuthorizationFilter(jwtProperty.getSecret_password()), UsernamePasswordAuthenticationFilter.class);
 
         http.authorizeRequests()
-                        .antMatchers("/login", "/auth/register", "/logout", "/auth/activate/**", "/auth/email/sendAgain/**").permitAll();
+                        .antMatchers(allowedRoutes).permitAll()
+                        .antMatchers(administrator_moderatorRoutes).hasAnyRole("ADMIN", "MODERATOR")
+                        .antMatchers(forUserRoutes).hasRole("USER");
 
         http.logout()
                 .logoutUrl("/logout")

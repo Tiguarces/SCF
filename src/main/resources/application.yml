@@ -54,9 +54,9 @@ user:
     - 'Prawdziwy-szef': '1500'
 
   roles:
-    - 'ROLE_USER'
-    - 'ROLE_ADMIN'
-    - 'ROLE_MODERATOR'
+    - 'USER'
+    - 'ADMIN'
+    - 'MODERATOR'
 
 admin-account:
   username: dejwid

@@ -13,7 +13,6 @@ import pl.scf.model.property.ActivateAccountProperty;
 import pl.scf.model.requests.RegisterRequest;
 import pl.scf.model.services.AppUserService;
 
-import javax.annotation.security.RolesAllowed;
 import java.util.List;
 
 import static org.springframework.http.HttpStatus.CREATED;
@@ -58,7 +57,6 @@ public class AuthApi {
     }
 
     @GetMapping("/user/id/{id}")
-    @RolesAllowed({ "ROLE_ADMIN", "ROLE_MODERATOR" })
     public final ResponseEntity<AppUser> getUserById(@PathVariable("id") final Long id) {
         return ResponseEntity
                 .status(OK)
@@ -66,7 +64,6 @@ public class AuthApi {
     }
 
     @GetMapping("/user/name/{username}")
-    @RolesAllowed({ "ROLE_ADMIN", "ROLE_MODERATOR" })
     public final ResponseEntity<AppUser> getUserByUsername(@PathVariable("username") final String username) {
         return ResponseEntity
                 .status(OK)
@@ -74,7 +71,6 @@ public class AuthApi {
     }
 
     @PutMapping("/user/update")
-    @RolesAllowed({ "ROLE_ADMIN", "ROLE_MODERATOR" })
     public final ResponseEntity<UniversalResponse> updateUser(@RequestBody final UpdateUserRequest request) {
         return ResponseEntity
                 .status(OK)
@@ -82,7 +78,6 @@ public class AuthApi {
     }
 
     @DeleteMapping("/user/delete/{id}")
-    @RolesAllowed({ "ROLE_ADMIN", "ROLE_MODERATOR" })
     public final ResponseEntity<UniversalResponse> getUserByUsername(@PathVariable("id") final Long id) {
         return ResponseEntity
                 .status(OK)
@@ -90,7 +85,6 @@ public class AuthApi {
     }
 
     @GetMapping("/all")
-    @RolesAllowed({ "ROLE_ADMIN", "ROLE_USER", "ROLE_MODERATOR" })
     public final List<AppUser> getAll() {
         return userService.getAll();
     }

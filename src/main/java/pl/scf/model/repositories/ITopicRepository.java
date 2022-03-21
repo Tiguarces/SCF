@@ -10,4 +10,6 @@ import java.util.List;
 @Repository
 public interface ITopicRepository extends JpaRepository<Topic, Long> {
     List<Answer> findAllAnswersById(Long topicId);
+
+    List<Topic> findAllByUserId(Long userId);
 }

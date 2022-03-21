@@ -17,6 +17,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import static pl.scf.api.ApiConstants.*;
+
 @Slf4j
 @Component
 @AllArgsConstructor
@@ -36,9 +38,9 @@ public class DatabaseInitializer {
 
         if(titleRepository.count() == 0) {
             titleRepository.saveAll(getPreparedTitles(titles));
-            log.info("Adding User titles");
+            log.info(USER_TITLES_ADDING);
         } else
-            log.info("All User titles exists");
+            log.info(USER_TITLES_EXISTS);
 
 
         if(roleRepository.count() == 0) {
@@ -46,16 +48,16 @@ public class DatabaseInitializer {
             roles.forEach(role -> userRoles.add(new UserRole(null, role, null)));
 
             roleRepository.saveAll(userRoles);
-            log.info("Adding user roles");
+            log.info(USER_ROLES_ADDING);
         } else
-            log.info("All User Roles exists");
+            log.info(USER_ROLES_EXISTS);
 
 
-        final UserRole adminRole = roleRepository.findByName("ROLE_ADMIN");
+        final UserRole adminRole = roleRepository.findByName("ADMIN");
         final Long adminId = adminRole.getId();
 
         userRepository.findByRoleId(adminId).ifPresentOrElse(
-                (admin) -> log.info("Administrator account exists"),
+                (admin) -> log.info(ADMIN_ACCOUNT_EXISTS),
                 () -> {
                     final AppUser admin = AppUser.builder()
                             .role(adminRole)
@@ -74,7 +76,7 @@ public class DatabaseInitializer {
                     admin.setUser_details(adminDetails);
 
                     userRepository.save(admin);
-                    log.info("Administrator account has created successfully");
+                    log.info(ADMIN_ACCOUNT_CREATE);
                 }
         );
     }

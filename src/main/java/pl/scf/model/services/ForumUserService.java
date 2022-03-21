@@ -1,6 +1,6 @@
 package pl.scf.model.services;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import pl.scf.api.model.UniversalResponse;
@@ -10,62 +10,79 @@ import pl.scf.model.repositories.IForumUserRepository;
 import java.util.Date;
 import java.util.List;
 
+import static pl.scf.api.ApiConstants.*;
+
 @Slf4j
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ForumUserService {
     private final IForumUserRepository userRepository;
-    private final String EXCEPTION_MESSAGE = "Error while deleting ForumUser with id: {} | Message: {}";
+    private final String toMessageForumUserWord = "ForumUser";
 
+    private ForumUser userByUsername;
     public final ForumUser getByUsername(final String username) {
-        log.info("Fetching ForumUser with username: {}", username);
-        return userRepository.findByUserUsername(username).orElse(new ForumUser());
+        userRepository.findByUserUsername(username).ifPresentOrElse(
+                (foundUser) -> {
+                    log.info(FETCHING_BY_STH_MESSAGE, toMessageForumUserWord, "Username", username);
+                    userByUsername = foundUser;
+                },
+                () -> {
+                    log.warn(NOT_FOUND_BY_STH, toMessageForumUserWord, "Username", username);
+                    userByUsername = new ForumUser();
+                }
+        ); return userByUsername;
     }
 
+    private UniversalResponse updateResponse;
     public final UniversalResponse update(final ForumUser forumUser) {
-        try {
-            log.info("Updating ForumUser with id: {}", forumUser.getId());
-            userRepository.save(forumUser);
+        userRepository.findById(forumUser.getId()).ifPresentOrElse(
+                (foundUser) -> {
+                    log.info(UPDATE_MESSAGE, toMessageForumUserWord, forumUser.getId());
+                    userRepository.save(forumUser);
 
-            return UniversalResponse.builder()
-                    .success(true)
-                    .date(new Date(System.currentTimeMillis()))
-                    .response("Successful update")
-                    .build();
-
-        } catch (final Exception exception) {
-            log.error(EXCEPTION_MESSAGE, forumUser.getId(), exception.getMessage());
-
-        } return UniversalResponse.builder()
-                .success(false)
-                .date(new Date(System.currentTimeMillis()))
-                .response("Fail while update")
-                .build();
+                    updateResponse = UniversalResponse.builder()
+                            .success(true)
+                            .date(new Date(System.currentTimeMillis()))
+                            .response(SUCCESS_UPDATE)
+                            .build();
+                },
+                () -> {
+                    log.warn(NOT_FOUND_BY_ID, toMessageForumUserWord, forumUser.getId());
+                    updateResponse = UniversalResponse.builder()
+                            .success(false)
+                            .date(new Date(System.currentTimeMillis()))
+                            .response(FAIL_UPDATE)
+                            .build();
+                }
+        ); return updateResponse;
     }
 
+    private UniversalResponse deleteResponse;
     public final UniversalResponse delete(final Long id) {
-        try {
-            log.info("Deleting ForumUser with id: {}", id);
-            userRepository.deleteById(id);
+        userRepository.findById(id).ifPresentOrElse(
+                (foundUser) -> {
+                    log.info(DELETING_MESSAGE, toMessageForumUserWord, id);
+                    userRepository.deleteById(id);
 
-            return UniversalResponse.builder()
-                    .success(true)
-                    .date(new Date(System.currentTimeMillis()))
-                    .response("Successfully deleting")
-                    .build();
-
-        } catch (final Exception exception) {
-            log.error(EXCEPTION_MESSAGE, id, exception.getMessage());
-
-        } return UniversalResponse.builder()
-                .success(false)
-                .date(new Date(System.currentTimeMillis()))
-                .response("Fail while deleting")
-                .build();
+                    deleteResponse = UniversalResponse.builder()
+                            .success(true)
+                            .date(new Date(System.currentTimeMillis()))
+                            .response(SUCCESS_DELETE)
+                            .build();
+                },
+                () -> {
+                    log.warn(NOT_FOUND_BY_ID, toMessageForumUserWord, id);
+                    deleteResponse = UniversalResponse.builder()
+                            .success(false)
+                            .date(new Date(System.currentTimeMillis()))
+                            .response(FAIL_DELETE)
+                            .build();
+                }
+        ); return deleteResponse;
     }
 
     public final List<ForumUser> getAll() {
-        log.info("Fetching all ForumUser");
+        log.info(FETCHING_ALL_MESSAGE, toMessageForumUserWord);
         return userRepository.findAll();
     }
 }

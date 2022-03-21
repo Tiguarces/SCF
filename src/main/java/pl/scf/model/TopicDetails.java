@@ -1,6 +1,5 @@
 package pl.scf.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -8,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 
+import static javax.persistence.CascadeType.ALL;
 import static javax.persistence.FetchType.LAZY;
 import static javax.persistence.GenerationType.IDENTITY;
 
@@ -16,19 +16,18 @@ import static javax.persistence.GenerationType.IDENTITY;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ForumUserImages {
-
+public class TopicDetails {
     @Id
     @GeneratedValue(strategy = IDENTITY)
     private Long id;
 
-    @Column(name = "avatarURL")
-    private String avatarImageURL;
+    @Lob
+    @Column(nullable = false)
+    private String description;
 
-    @Column(name = "backgroundURL")
-    private String backgroundImageURL;
+    @Column(nullable = false)
+    private String topicName;
 
-    @JsonBackReference
-    @OneToOne(fetch = LAZY, mappedBy = "user")
-    private ForumUser user;
+    @OneToOne(mappedBy = "details", fetch = LAZY, cascade = ALL)
+    private Topic topic;
 }

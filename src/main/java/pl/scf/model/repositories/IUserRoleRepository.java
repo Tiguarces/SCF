@@ -6,5 +6,5 @@ import pl.scf.model.UserRole;
 
 @Repository
 public interface IUserRoleRepository extends JpaRepository<UserRole, Long> {
-    UserRole findByName(String name);
+     UserRole findByName(String name);
 }

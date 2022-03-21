@@ -1,41 +1,90 @@
 package pl.scf.model.services;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import pl.scf.api.model.ForumUserDescriptionUpdateRequest;
+import pl.scf.api.model.UniversalResponse;
 import pl.scf.model.ForumUserDescription;
 import pl.scf.model.repositories.IForumUserDescriptionRepository;
 
+import java.util.Date;
 import java.util.List;
+
+import static pl.scf.api.ApiConstants.*;
 
 @Slf4j
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ForumUserDescriptionService {
     private final IForumUserDescriptionRepository descriptionRepository;
+    private final String toMessageForumUserDescriptionWord = "ForumUserDescription";
 
-    public final void save(final ForumUserDescription forumUserDescription) {
-        log.info("Saving new ForumUserDescription");
-        descriptionRepository.save(forumUserDescription);
-    }
-
+    private ForumUserDescription forumDescriptionById;
     public final ForumUserDescription getById(final Long id) {
-        log.info("Fetching ForumUserDescription with id: {}", id);
-        return descriptionRepository.findById(id).orElse(new ForumUserDescription());
+        descriptionRepository.findById(id).ifPresentOrElse(
+                (foundDescription) -> {
+                    log.info(FETCH_BY_ID, toMessageForumUserDescriptionWord, id);
+                    forumDescriptionById = foundDescription;
+                },
+                () -> {
+                    log.warn(NOT_FOUND_BY_ID, toMessageForumUserDescriptionWord, id);
+                    forumDescriptionById = new ForumUserDescription();
+                }
+        ); return forumDescriptionById;
     }
 
-    public final void update(final ForumUserDescription forumUser) {
-        log.info("Updating ForumUserDescription with id: {}", forumUser.getId());
-        descriptionRepository.save(forumUser);
+    private UniversalResponse updateResponse;
+    public final UniversalResponse update(final ForumUserDescriptionUpdateRequest request) {
+        descriptionRepository.findById(request.getUserId()).ifPresentOrElse(
+                (foundDescription) -> {
+                    log.info(UPDATE_MESSAGE, toMessageForumUserDescriptionWord, request.getUserId());
+                    foundDescription.setContent(request.getContent());
+
+                    descriptionRepository.save(foundDescription);
+                    updateResponse = UniversalResponse.builder()
+                            .success(true)
+                            .date(new Date(System.currentTimeMillis()))
+                            .response(SUCCESS_UPDATE)
+                            .build();
+                },
+                () -> {
+                    log.warn(NOT_FOUND_BY_ID, toMessageForumUserDescriptionWord, request.getUserId());
+                    updateResponse = UniversalResponse.builder()
+                            .success(false)
+                            .date(new Date(System.currentTimeMillis()))
+                            .response(FAIL_UPDATE)
+                            .build();
+                }
+        ); return updateResponse;
     }
 
-    public final void delete(final Long id) {
-        log.info("Deleting ForumUserDescription with id: {}", id);
-        descriptionRepository.deleteById(id);
+    private UniversalResponse deleteResponse;
+    public final UniversalResponse delete(final Long id) {
+        descriptionRepository.findById(id).ifPresentOrElse(
+                (foundDescription) -> {
+                    log.info(DELETING_MESSAGE, toMessageForumUserDescriptionWord, id);
+                    descriptionRepository.deleteById(id);
+
+                    deleteResponse = UniversalResponse.builder()
+                            .success(true)
+                            .date(new Date(System.currentTimeMillis()))
+                            .response(SUCCESS_DELETE)
+                            .build();
+                },
+                () -> {
+                    log.warn(NOT_FOUND_BY_ID, toMessageForumUserDescriptionWord, id);
+                    deleteResponse = UniversalResponse.builder()
+                            .success(false)
+                            .date(new Date(System.currentTimeMillis()))
+                            .response(FAIL_DELETE)
+                            .build();
+                }
+        ); return deleteResponse;
     }
 
     public final List<ForumUserDescription> getAll() {
-        log.info("Fetching all ForumUserDescription");
+        log.info(FETCHING_ALL_MESSAGE, toMessageForumUserDescriptionWord);
         return descriptionRepository.findAll();
     }
 }
