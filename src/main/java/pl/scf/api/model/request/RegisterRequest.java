@@ -1,4 +1,4 @@
-package pl.scf.model.requests;
+package pl.scf.api.model.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

@@ -1,4 +1,4 @@
-package pl.scf.api;
+package pl.scf.api.model.utils;
 
 public final class ApiConstants {
     public static final String NULLABLE_MESSAGE = "{} is null";
@@ -9,8 +9,8 @@ public final class ApiConstants {
     public final static String DELETING_MESSAGE = "Deleting {} with id: {}";
     public final static String FETCHING_BY_STH_MESSAGE = "Fetching {} with {}: {}";
     public final static String EXCEPTION_MESSAGE = "Error while {} {} | Message: {}";
-    public static final String NOT_FOUND_BY_ID = "{} with id: {} not found in the database | Returning empty object";
-    public static final String NOT_FOUND_BY_STH = "{} with {}: {} not found in the database | Returning empty object";
+    public static final String NOT_FOUND_BY_ID = "{} with id: {} not found in the database";
+    public static final String NOT_FOUND_BY_STH = "{} with {}: {} not found in the database";
 
     public static final String SUCCESS_SAVING = "Successful saving";
     public static final String FAIL_SAVING = "Fail while saving";
@@ -33,4 +33,8 @@ public final class ApiConstants {
     public static final String USER_ROLES_EXISTS = "All User titles exists";
     public static final String USER_TITLES_ADDING = "Adding user roles";
     public static final String USER_TITLES_EXISTS = "All User Roles exists";
+
+    public static final String NOT_VALID_ELEMENT_MESSAGE = "%s is null or empty";
+    public static final String NOT_FOUND_MESSAGE = "Not found %s with %s: %s";
+    public static final String ID_ERROR_MESSAGE = "Id must be greater than 0";
 }

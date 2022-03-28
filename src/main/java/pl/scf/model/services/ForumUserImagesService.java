@@ -3,15 +3,15 @@ package pl.scf.model.services;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import pl.scf.api.model.ForumUserImagesUpdateRequest;
-import pl.scf.api.model.UniversalResponse;
+import pl.scf.api.model.request.ForumUserImagesUpdateRequest;
+import pl.scf.api.model.response.UniversalResponse;
 import pl.scf.model.ForumUserImages;
 import pl.scf.model.repositories.IForumUserImagesRepository;
 
 import java.util.Date;
 import java.util.List;
 
-import static pl.scf.api.ApiConstants.*;
+import static pl.scf.api.model.utils.ApiConstants.*;
 
 @Slf4j
 @Service
@@ -36,37 +36,29 @@ public class ForumUserImagesService {
 
     private UniversalResponse updateResponse;
     public final UniversalResponse update(final ForumUserImagesUpdateRequest request) {
-        if(request == null) {
-            updateResponse = UniversalResponse.builder()
-                    .success(false)
-                    .date(new Date(System.currentTimeMillis()))
-                    .response("Request is null")
-                    .build();
-        } else {
-            imagesRepository.findById(request.getUserImagesId()).ifPresentOrElse(
-                    (foundImages) -> {
-                        foundImages.setAvatarImageURL(request.getAvatarImageURL());
-                        foundImages.setBackgroundImageURL(request.getBackgroundImageURL());
+        imagesRepository.findById(request.getUserImagesId()).ifPresentOrElse(
+                (foundImages) -> {
+                    foundImages.setAvatarImageURL(request.getAvatarImageURL());
+                    foundImages.setBackgroundImageURL(request.getBackgroundImageURL());
 
-                        log.info(UPDATE_MESSAGE, toMessageForumUserImagesWord, request.getUserImagesId());
-                        imagesRepository.save(foundImages);
+                    log.info(UPDATE_MESSAGE, toMessageForumUserImagesWord, request.getUserImagesId());
+                    imagesRepository.save(foundImages);
 
-                        updateResponse = UniversalResponse.builder()
-                                .success(true)
-                                .date(new Date(System.currentTimeMillis()))
-                                .response(SUCCESS_UPDATE)
-                                .build();
-                    },
-                    () -> {
-                        log.warn(NOT_FOUND_BY_ID, toMessageForumUserImagesWord, request.getUserImagesId());
-                        updateResponse = UniversalResponse.builder()
-                                .success(false)
-                                .date(new Date(System.currentTimeMillis()))
-                                .response(FAIL_UPDATE)
-                                .build();
-                    }
-            );
-        } return updateResponse;
+                    updateResponse = UniversalResponse.builder()
+                            .success(true)
+                            .date(new Date(System.currentTimeMillis()))
+                            .message(SUCCESS_UPDATE)
+                            .build();
+                },
+                () -> {
+                    log.warn(NOT_FOUND_BY_ID, toMessageForumUserImagesWord, request.getUserImagesId());
+                    updateResponse = UniversalResponse.builder()
+                            .success(false)
+                            .date(new Date(System.currentTimeMillis()))
+                            .message(FAIL_UPDATE)
+                            .build();
+                }
+        ); return updateResponse;
     }
 
     private UniversalResponse deleteResponse;
@@ -79,7 +71,7 @@ public class ForumUserImagesService {
                     deleteResponse = UniversalResponse.builder()
                             .success(true)
                             .date(new Date(System.currentTimeMillis()))
-                            .response(SUCCESS_DELETE)
+                            .message(SUCCESS_DELETE)
                             .build();
                 },
                 () -> {
@@ -87,7 +79,7 @@ public class ForumUserImagesService {
                     deleteResponse = UniversalResponse.builder()
                             .success(false)
                             .date(new Date(System.currentTimeMillis()))
-                            .response(FAIL_DELETE)
+                            .message(FAIL_DELETE)
                             .build();
                 }
         ); return deleteResponse;

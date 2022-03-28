@@ -3,45 +3,38 @@ package pl.scf.api;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import pl.scf.api.model.UniversalResponse;
+import pl.scf.api.model.response.UniversalResponse;
 import pl.scf.model.ForumUser;
 import pl.scf.model.services.ForumUserService;
 
 import java.util.List;
 
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.OK;
+import static pl.scf.api.model.utils.ResponseUtil.buildResponseEntity;
 
 @RestController
 @AllArgsConstructor
 @RequestMapping("/forum/user")
 public class UserForumApi {
-    private final ForumUserService service;
+    private final ForumUserService forumUserService;
 
     @DeleteMapping("/delete/{id}")
     public final ResponseEntity<UniversalResponse> deleteForumUser(@PathVariable("id") final Long id) {
-        return ResponseEntity
-                .status(OK)
-                .body(service.delete(id));
-    }
-
-    @PutMapping("/update")
-    public final ResponseEntity<UniversalResponse> updateForumUser(@RequestBody final ForumUser user) {
-        return ResponseEntity
-                .status(OK)
-                .body(service.update(user));
+        final UniversalResponse response = forumUserService.delete(id);
+        return buildResponseEntity(
+                response.getSuccess() ? OK : INTERNAL_SERVER_ERROR,
+                response
+        );
     }
 
     @GetMapping("/all")
     public final ResponseEntity<List<ForumUser>> getAllUsers() {
-        return ResponseEntity
-                .status(OK)
-                .body(service.getAll());
+        return buildResponseEntity(OK, forumUserService.getAll());
     }
 
     @GetMapping("/username/{username}")
     public final ResponseEntity<ForumUser> getByUsername(@PathVariable("username") final String username) {
-        return ResponseEntity
-                .status(OK)
-                .body(service.getByUsername(username));
+        return buildResponseEntity(OK, forumUserService.getByUsername(username));
     }
 }

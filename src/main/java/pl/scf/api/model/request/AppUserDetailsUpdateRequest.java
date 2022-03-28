@@ -1,4 +1,4 @@
-package pl.scf.api.model;
+package pl.scf.api.model.request;
 
 import lombok.Data;
 

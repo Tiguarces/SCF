@@ -2,14 +2,17 @@ package pl.scf.security;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.mapping.Collection;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -49,9 +52,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             "/forum/**",
             "/roles/**",
             "/userDetails/**",
-            "/forumUser/images/**",
-            "/forumUser/description/**",
+            "/topic/category/**",
             "/forumUser/title/**",
+            "/forumUser/images/**",
+            "/forumUser/description/**"
     };
 
     private final String[] forUserRoutes = new String[] {
@@ -96,17 +100,17 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.addFilterBefore(new SCFAuthorizationFilter(jwtProperty.getSecret_password()), UsernamePasswordAuthenticationFilter.class);
 
         http.authorizeRequests()
-                        .antMatchers(allowedRoutes).permitAll()
-                        .antMatchers(administrator_moderatorRoutes).hasAnyRole("ADMIN", "MODERATOR")
-                        .antMatchers(forUserRoutes).hasRole("USER");
+                .antMatchers(allowedRoutes).permitAll()
+                .antMatchers(administrator_moderatorRoutes).hasAnyRole("ADMIN", "MODERATOR")
+                .antMatchers(forUserRoutes).hasRole("USER");
 
         http.logout()
                 .logoutUrl("/logout")
                 .permitAll();
 
         http.authorizeRequests()
-                        .anyRequest()
-                        .authenticated();
+                .anyRequest()
+                .authenticated();
     }
 
     @Override
@@ -116,7 +120,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             final AppUser user = userRepository.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException(notFound));
             log.info("User {} found in the database", username);
 
-            final List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(user.getRole().getName()));
+            final List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().getName()));
             return new User(user.getUsername(), user.getPassword(), authorities);
 
         }).passwordEncoder(passwordEncoder());

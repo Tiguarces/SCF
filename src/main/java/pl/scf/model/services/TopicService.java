@@ -3,21 +3,20 @@ package pl.scf.model.services;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import pl.scf.api.model.TopicSaveRequest;
-import pl.scf.api.model.TopicUpdateRequest;
-import pl.scf.api.model.UniversalResponse;
-import pl.scf.model.Answer;
-import pl.scf.model.Topic;
-import pl.scf.model.TopicDetails;
+import pl.scf.api.model.exception.NotFoundException;
+import pl.scf.api.model.request.TopicSaveRequest;
+import pl.scf.api.model.request.TopicUpdateRequest;
+import pl.scf.api.model.response.UniversalResponse;
+import pl.scf.model.*;
 import pl.scf.model.repositories.IForumUserRepository;
+import pl.scf.model.repositories.ITopicCategoryRepository;
 import pl.scf.model.repositories.ITopicRepository;
+import pl.scf.model.repositories.ITopicSubCategoryRepository;
 
 import java.util.Date;
 import java.util.List;
 
-import static pl.scf.api.ApiConstants.*;
+import static pl.scf.api.model.utils.ApiConstants.*;
 
 @Slf4j
 @Service
@@ -25,49 +24,52 @@ import static pl.scf.api.ApiConstants.*;
 public class TopicService {
     private final ITopicRepository topicRepository;
     private final IForumUserRepository userRepository;
+    private final ITopicCategoryRepository categoryRepository;
+    private final ITopicSubCategoryRepository subCategoryRepository;
 
     private final String toMessageTopicWord = "Topic";
 
-    private UniversalResponse saveResponse;
     public final UniversalResponse save(final TopicSaveRequest request) {
-        if(request == null) {
-            saveResponse = UniversalResponse.builder()
+        try {
+            final TopicSubCategory subCategory = subCategoryRepository.findByName(request.getSubCategoryName())
+                                                                                    .orElseThrow(NotFoundException::new);
+
+            final TopicCategory topicCategory = categoryRepository.findByName(request.getCategoryName())
+                                                                                    .orElseThrow(NotFoundException::new);
+
+            final ForumUser forumUser = userRepository.findById(request.getForumUserId())
+                                                                                    .orElseThrow(NotFoundException::new);
+
+            final TopicDetails details = TopicDetails.builder()
+                    .description(request.getDescription())
+                    .topicName(request.getTopicName())
+                    .build();
+
+            subCategory.setCategory(topicCategory);
+
+            final Topic topic = Topic.builder()
+                    .user(forumUser)
+                    .details(details)
+                    .subCategory(subCategory)
+                    .build();
+
+            log.info(SAVING, toMessageTopicWord);
+            topicRepository.save(topic);
+
+            return UniversalResponse.builder()
+                    .success(true)
+                    .date(new Date(System.currentTimeMillis()))
+                    .message(SUCCESS_SAVING)
+                    .build();
+
+        } catch (final IllegalArgumentException | NullPointerException | NotFoundException exception) {
+            log.warn(EXCEPTION_MESSAGE, "saving", toMessageTopicWord, exception.getMessage());
+            return UniversalResponse.builder()
                     .success(false)
                     .date(new Date(System.currentTimeMillis()))
-                    .response("Request is null")
+                    .message(FAIL_SAVING)
                     .build();
-        } else {
-            userRepository.findById(request.getForumUserId()).ifPresentOrElse(
-                    (foundUser) -> {
-                        final TopicDetails details = TopicDetails.builder()
-                                .description(request.getDescription())
-                                .topicName(request.getTopicName())
-                                .build();
-
-                        final Topic topic = Topic.builder()
-                                .user(foundUser)
-                                .details(details)
-                                .build();
-
-                        log.info(SAVING, toMessageTopicWord);
-                        topicRepository.save(topic);
-
-                        saveResponse = UniversalResponse.builder()
-                                .success(true)
-                                .date(new Date(System.currentTimeMillis()))
-                                .response(SUCCESS_SAVING)
-                                .build();
-                    },
-                    () -> {
-                        log.warn(NOT_FOUND_BY_ID, toMessageTopicWord, request.getForumUserId());
-                        saveResponse = UniversalResponse.builder()
-                                .success(false)
-                                .date(new Date(System.currentTimeMillis()))
-                                .response(FAIL_SAVING)
-                                .build();
-                    }
-            );
-        } return saveResponse;
+        }
     }
 
     private Topic getByIdTopic;
@@ -86,36 +88,28 @@ public class TopicService {
 
     private UniversalResponse updateResponse;
     public final UniversalResponse update(final TopicUpdateRequest request) {
-        if(request == null) {
-            updateResponse = UniversalResponse.builder()
-                    .success(false)
-                    .date(new Date(System.currentTimeMillis()))
-                    .response("Request is null")
-                    .build();
-        } else {
-            topicRepository.findById(request.getTopicId()).ifPresentOrElse(
-                    (foundTopic) -> {
-                        foundTopic.getDetails().setDescription(request.getDescription());
+        topicRepository.findById(request.getTopicId()).ifPresentOrElse(
+                (foundTopic) -> {
+                    foundTopic.getDetails().setDescription(request.getDescription());
 
-                        log.info(UPDATE_MESSAGE, toMessageTopicWord, request.getTopicId());
-                        topicRepository.save(foundTopic);
+                    log.info(UPDATE_MESSAGE, toMessageTopicWord, request.getTopicId());
+                    topicRepository.save(foundTopic);
 
-                        updateResponse = UniversalResponse.builder()
-                                .success(true)
-                                .date(new Date(System.currentTimeMillis()))
-                                .response(SUCCESS_UPDATE)
-                                .build();
-                    },
-                    () -> {
-                        log.warn(NOT_FOUND_BY_ID, toMessageTopicWord, request.getTopicId());
-                        updateResponse = UniversalResponse.builder()
-                                .success(false)
-                                .date(new Date(System.currentTimeMillis()))
-                                .response(FAIL_UPDATE)
-                                .build();
-                    }
-            );
-        } return updateResponse;
+                    updateResponse = UniversalResponse.builder()
+                            .success(true)
+                            .date(new Date(System.currentTimeMillis()))
+                            .message(SUCCESS_UPDATE)
+                            .build();
+                },
+                () -> {
+                    log.warn(NOT_FOUND_BY_ID, toMessageTopicWord, request.getTopicId());
+                    updateResponse = UniversalResponse.builder()
+                            .success(false)
+                            .date(new Date(System.currentTimeMillis()))
+                            .message(FAIL_UPDATE)
+                            .build();
+                }
+        ); return updateResponse;
     }
 
     private UniversalResponse deleteResponse;
@@ -128,7 +122,7 @@ public class TopicService {
                     deleteResponse = UniversalResponse.builder()
                             .success(true)
                             .date(new Date(System.currentTimeMillis()))
-                            .response(SUCCESS_DELETE)
+                            .message(SUCCESS_DELETE)
                             .build();
                 },
                 () -> {
@@ -136,7 +130,7 @@ public class TopicService {
                     deleteResponse = UniversalResponse.builder()
                             .success(false)
                             .date(new Date(System.currentTimeMillis()))
-                            .response(FAIL_DELETE)
+                            .message(FAIL_DELETE)
                             .build();
                 }
         ); return deleteResponse;
@@ -147,8 +141,7 @@ public class TopicService {
         return topicRepository.findAll();
     }
 
-    @GetMapping("/get/user/id/{id}")
-    public final List<Topic> getAllByUserId(@PathVariable("id") final Long userId) {
+    public final List<Topic> getAllByUserId(final Long userId) {
         log.info(FETCHING_BY_STH_MESSAGE, toMessageTopicWord, "id", userId);
         return topicRepository.findAllByUserId(userId);
     }

@@ -1,12 +1,11 @@
 package pl.scf.model.services;
 
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import pl.scf.api.model.AnswerSaveRequest;
-import pl.scf.api.model.UniversalResponse;
-import pl.scf.api.model.UpdateAnswerRequest;
+import pl.scf.api.model.request.AnswerSaveRequest;
+import pl.scf.api.model.response.UniversalResponse;
+import pl.scf.api.model.request.UpdateAnswerRequest;
 import pl.scf.api.model.exception.NotFoundException;
 import pl.scf.model.Answer;
 import pl.scf.model.ForumUser;
@@ -18,7 +17,7 @@ import pl.scf.model.repositories.ITopicRepository;
 import java.util.Date;
 import java.util.List;
 
-import static pl.scf.api.ApiConstants.*;
+import static pl.scf.api.model.utils.ApiConstants.*;
 
 @Slf4j
 @Service
@@ -49,7 +48,7 @@ public class AnswerService {
 
             return UniversalResponse.builder()
                     .success(true)
-                    .response(SUCCESS_SAVING)
+                    .message(SUCCESS_SAVING)
                     .date(new Date(System.currentTimeMillis()))
                     .build();
 
@@ -58,7 +57,7 @@ public class AnswerService {
 
             return UniversalResponse.builder()
                     .success(false)
-                    .response(FAIL_SAVING)
+                    .message(FAIL_SAVING)
                     .date(new Date(System.currentTimeMillis()))
                     .build();
         }
@@ -87,7 +86,7 @@ public class AnswerService {
 
                     updateResponse = UniversalResponse.builder()
                             .success(true)
-                            .response(SUCCESS_UPDATE)
+                            .message(SUCCESS_UPDATE)
                             .date(new Date(System.currentTimeMillis()))
                             .build();
                 },
@@ -95,7 +94,7 @@ public class AnswerService {
                     log.warn(NOT_FOUND_BY_ID, toMessageAnswerWord, request.getAnswerId());
                     updateResponse = UniversalResponse.builder()
                             .success(false)
-                            .response(FAIL_UPDATE)
+                            .message(FAIL_UPDATE)
                             .date(new Date(System.currentTimeMillis()))
                             .build();
                 }
@@ -111,7 +110,7 @@ public class AnswerService {
 
                     deleteResponse = UniversalResponse.builder()
                             .success(true)
-                            .response(SUCCESS_DELETE)
+                            .message(SUCCESS_DELETE)
                             .date(new Date(System.currentTimeMillis()))
                             .build();
                 },
@@ -119,7 +118,7 @@ public class AnswerService {
                     log.warn(NOT_FOUND_BY_ID, toMessageAnswerWord, id);
                     deleteResponse = UniversalResponse.builder()
                             .success(false)
-                            .response(FAIL_DELETE)
+                            .message(FAIL_DELETE)
                             .date(new Date(System.currentTimeMillis()))
                             .build();
                 }

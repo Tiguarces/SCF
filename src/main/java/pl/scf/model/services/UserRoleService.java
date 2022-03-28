@@ -3,8 +3,8 @@ package pl.scf.model.services;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import pl.scf.api.model.UniversalResponse;
-import pl.scf.api.model.UserRoleUpdateRequest;
+import pl.scf.api.model.response.UniversalResponse;
+import pl.scf.api.model.request.UserRoleUpdateRequest;
 import pl.scf.model.UserRole;
 import pl.scf.model.repositories.IUserRoleRepository;
 
@@ -12,7 +12,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
-import static pl.scf.api.ApiConstants.*;
+import static pl.scf.api.model.utils.ApiConstants.*;
 
 @Slf4j
 @Service
@@ -27,7 +27,7 @@ public class UserRoleService {
             saveResponse = UniversalResponse.builder()
                     .success(false)
                     .date(new Date(System.currentTimeMillis()))
-                    .response("RoleName is null")
+                    .message("RoleName is null")
                     .build();
         } else {
             Optional.ofNullable(roleRepository.findByName(roleName)).ifPresentOrElse(
@@ -36,7 +36,7 @@ public class UserRoleService {
                         saveResponse = UniversalResponse.builder()
                                 .success(false)
                                 .date(new Date(System.currentTimeMillis()))
-                                .response(FAIL_SAVING + " | Role exists")
+                                .message(FAIL_SAVING + " | Role exists")
                                 .build();
                     },() -> {
                         final UserRole role = UserRole.builder()
@@ -49,7 +49,7 @@ public class UserRoleService {
                         saveResponse = UniversalResponse.builder()
                                 .success(true)
                                 .date(new Date(System.currentTimeMillis()))
-                                .response(SUCCESS_SAVING)
+                                .message(SUCCESS_SAVING)
                                 .build();
                     }
             );
@@ -93,7 +93,7 @@ public class UserRoleService {
                         updateResponse = UniversalResponse.builder()
                                 .success(false)
                                 .date(new Date(System.currentTimeMillis()))
-                                .response("Role exists and names are equal | Skipping updating")
+                                .message("Role exists and names are equal | Skipping updating")
                                 .build();
 
                     } else {
@@ -104,7 +104,7 @@ public class UserRoleService {
                         updateResponse = UniversalResponse.builder()
                                 .success(true)
                                 .date(new Date(System.currentTimeMillis()))
-                                .response(SUCCESS_UPDATE)
+                                .message(SUCCESS_UPDATE)
                                 .build();
                     }
                 },
@@ -113,7 +113,7 @@ public class UserRoleService {
                     updateResponse = UniversalResponse.builder()
                             .success(false)
                             .date(new Date(System.currentTimeMillis()))
-                            .response(FAIL_UPDATE)
+                            .message(FAIL_UPDATE)
                             .build();
                 }
         ); return updateResponse;
@@ -129,7 +129,7 @@ public class UserRoleService {
                     deleteResponse = UniversalResponse.builder()
                             .success(true)
                             .date(new Date(System.currentTimeMillis()))
-                            .response(SUCCESS_DELETE)
+                            .message(SUCCESS_DELETE)
                             .build();
                 },
                 () -> {
@@ -137,7 +137,7 @@ public class UserRoleService {
                     deleteResponse = UniversalResponse.builder()
                             .success(false)
                             .date(new Date(System.currentTimeMillis()))
-                            .response(FAIL_DELETE)
+                            .message(FAIL_DELETE)
                             .build();
                 }
         ); return deleteResponse;

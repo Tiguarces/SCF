@@ -17,7 +17,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import static pl.scf.api.ApiConstants.*;
+import static pl.scf.api.model.utils.ApiConstants.*;
 
 @Slf4j
 @Component

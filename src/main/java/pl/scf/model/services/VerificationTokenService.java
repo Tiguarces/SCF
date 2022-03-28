@@ -3,14 +3,15 @@ package pl.scf.model.services;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import pl.scf.api.model.UniversalResponse;
+import pl.scf.api.model.request.VerificationTokenSaveRequest;
+import pl.scf.api.model.response.UniversalResponse;
 import pl.scf.model.VerificationToken;
 import pl.scf.model.repositories.IVerificationTokenRepository;
 
 import java.util.Date;
 import java.util.List;
 
-import static pl.scf.api.ApiConstants.*;
+import static pl.scf.api.model.utils.ApiConstants.*;
 
 @Slf4j
 @Service
@@ -20,24 +21,27 @@ public class VerificationTokenService {
     private final String toMessageTokenWord = "Verification Token";
 
     private UniversalResponse updateResponse;
-    public final UniversalResponse update(final VerificationToken token) {
-        tokenRepository.findById(token.getId()).ifPresentOrElse(
+    public final UniversalResponse update(final VerificationTokenSaveRequest request) {
+        tokenRepository.findById(request.getUserId()).ifPresentOrElse(
                 (foundToken) -> {
-                    log.info(UPDATE_MESSAGE, toMessageTokenWord, token.getId());
+                    foundToken.setToken(request.getToken());
+                    foundToken.setActivated(request.getActivated());
+
+                    log.info(UPDATE_MESSAGE, toMessageTokenWord, request.getUserId());
                     tokenRepository.save(foundToken);
 
                     updateResponse = UniversalResponse.builder()
                             .date(new Date(System.currentTimeMillis()))
                             .success(true)
-                            .response(SUCCESS_UPDATE)
+                            .message(SUCCESS_UPDATE)
                             .build();
                 },
                 () -> {
-                    log.warn(NOT_FOUND_BY_ID, "Token", token.getId());
+                    log.warn(NOT_FOUND_BY_ID, "Token", request.getUserId());
                     updateResponse = UniversalResponse.builder()
                             .date(new Date(System.currentTimeMillis()))
                             .success(false)
-                            .response(FAIL_UPDATE)
+                            .message(FAIL_UPDATE)
                             .build();
                 }
         ); return  updateResponse;
@@ -53,14 +57,14 @@ public class VerificationTokenService {
                     deleteResponse = UniversalResponse.builder()
                             .date(new Date(System.currentTimeMillis()))
                             .success(true)
-                            .response(SUCCESS_DELETE)
+                            .message(SUCCESS_DELETE)
                             .build();
                 }, () -> {
                     log.warn(NOT_FOUND_BY_ID, "Token", id);
                     deleteResponse = UniversalResponse.builder()
                             .date(new Date(System.currentTimeMillis()))
                             .success(false)
-                            .response(SUCCESS_DELETE)
+                            .message(SUCCESS_DELETE)
                             .build();
                 }
         ); return deleteResponse;
@@ -81,7 +85,7 @@ public class VerificationTokenService {
     }
 
     private VerificationToken tokenByName;
-    public final VerificationToken findByTokenName(final String desiredToken) {
+    public final VerificationToken getByTokenName(final String desiredToken) {
         tokenRepository.findByToken(desiredToken).ifPresentOrElse(
                 (foundToken) -> {
                     log.info(FETCH_BY_ID, tokenByName, foundToken.getId());

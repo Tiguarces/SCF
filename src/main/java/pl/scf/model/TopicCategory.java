@@ -1,30 +1,30 @@
 package pl.scf.model;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.util.List;
 
 import static javax.persistence.FetchType.LAZY;
 import static javax.persistence.GenerationType.IDENTITY;
 
-@Getter
-@Setter
+@Data
 @Entity
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TopicDetails {
+public class TopicCategory {
+
     @Id
     @GeneratedValue(strategy = IDENTITY)
     private Long id;
 
-    @Lob
     @Column(nullable = false)
-    private String description;
+    private String name;
 
-    @Column(nullable = false)
-    private String topicName;
-
-    @OneToOne(mappedBy = "details", fetch = LAZY)
-    private Topic topic;
+    @OneToMany(fetch = LAZY, mappedBy = "category")
+    private List<TopicSubCategory> subCategory;
 }

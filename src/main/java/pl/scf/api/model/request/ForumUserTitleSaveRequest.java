@@ -1,10 +1,9 @@
-package pl.scf.api.model;
+package pl.scf.api.model.request;
 
 import lombok.Data;
 
 @Data
-public class ForumUserTitleUpdateRequest {
-    private Long titleId;
+public class ForumUserTitleSaveRequest {
     private String titleName;
     private String rangeIntervalPoints;
 }

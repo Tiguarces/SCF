@@ -3,14 +3,14 @@ package pl.scf.model.services;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import pl.scf.api.model.UniversalResponse;
+import pl.scf.api.model.response.UniversalResponse;
 import pl.scf.model.ForumUser;
 import pl.scf.model.repositories.IForumUserRepository;
 
 import java.util.Date;
 import java.util.List;
 
-import static pl.scf.api.ApiConstants.*;
+import static pl.scf.api.model.utils.ApiConstants.*;
 
 @Slf4j
 @Service
@@ -33,30 +33,6 @@ public class ForumUserService {
         ); return userByUsername;
     }
 
-    private UniversalResponse updateResponse;
-    public final UniversalResponse update(final ForumUser forumUser) {
-        userRepository.findById(forumUser.getId()).ifPresentOrElse(
-                (foundUser) -> {
-                    log.info(UPDATE_MESSAGE, toMessageForumUserWord, forumUser.getId());
-                    userRepository.save(forumUser);
-
-                    updateResponse = UniversalResponse.builder()
-                            .success(true)
-                            .date(new Date(System.currentTimeMillis()))
-                            .response(SUCCESS_UPDATE)
-                            .build();
-                },
-                () -> {
-                    log.warn(NOT_FOUND_BY_ID, toMessageForumUserWord, forumUser.getId());
-                    updateResponse = UniversalResponse.builder()
-                            .success(false)
-                            .date(new Date(System.currentTimeMillis()))
-                            .response(FAIL_UPDATE)
-                            .build();
-                }
-        ); return updateResponse;
-    }
-
     private UniversalResponse deleteResponse;
     public final UniversalResponse delete(final Long id) {
         userRepository.findById(id).ifPresentOrElse(
@@ -67,7 +43,7 @@ public class ForumUserService {
                     deleteResponse = UniversalResponse.builder()
                             .success(true)
                             .date(new Date(System.currentTimeMillis()))
-                            .response(SUCCESS_DELETE)
+                            .message(SUCCESS_DELETE)
                             .build();
                 },
                 () -> {
@@ -75,7 +51,7 @@ public class ForumUserService {
                     deleteResponse = UniversalResponse.builder()
                             .success(false)
                             .date(new Date(System.currentTimeMillis()))
-                            .response(FAIL_DELETE)
+                            .message(FAIL_DELETE)
                             .build();
                 }
         ); return deleteResponse;

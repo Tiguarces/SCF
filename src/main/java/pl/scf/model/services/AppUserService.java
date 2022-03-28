@@ -5,16 +5,17 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import pl.scf.api.model.ActivateEmailResponse;
-import pl.scf.api.model.RegisterResponse;
-import pl.scf.api.model.UniversalResponse;
-import pl.scf.api.model.UpdateUserRequest;
+import pl.scf.api.model.request.RegisterRequest;
+import pl.scf.api.model.request.UpdateUserRequest;
+import pl.scf.api.model.response.ActivateEmailResponse;
+import pl.scf.api.model.response.AppUserResponse;
+import pl.scf.api.model.response.RegisterResponse;
+import pl.scf.api.model.response.UniversalResponse;
 import pl.scf.model.*;
 import pl.scf.model.mail.MailNotification;
 import pl.scf.model.mail.MailService;
 import pl.scf.model.property.EmailProperty;
 import pl.scf.model.repositories.*;
-import pl.scf.model.requests.RegisterRequest;
 
 import java.util.Date;
 import java.util.List;
@@ -22,7 +23,9 @@ import java.util.Random;
 import java.util.UUID;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static pl.scf.api.ApiConstants.*;
+import static pl.scf.api.model.utils.ApiConstants.*;
+import static pl.scf.api.model.utils.ResponseUtil.messageByIdError;
+import static pl.scf.api.model.utils.ResponseUtil.messageBySthError;
 
 @Slf4j
 @Service
@@ -39,44 +42,31 @@ public class AppUserService {
     private final EmailProperty emailProperty;
     private final String toMessageAppUserWord = "AppUser";
 
-//    public AppUserService(IAppUserRepository userRepository, IUserRoleRepository roleRepository, IAppUserDetailsRepository detailsRepository, IForumUserTitleRepository titleRepository,
-//                          IVerificationTokenRepository tokenRepository, PasswordEncoder passwordEncoder, MailService mailService, JavaMailSender mailSender, EmailProperty emailProperty) {
-//        this.userRepository = userRepository;
-//        this.roleRepository = roleRepository;
-//        this.detailsRepository = detailsRepository;
-//        this.titleRepository = titleRepository;
-//        this.tokenRepository = tokenRepository;
-//        this.passwordEncoder = passwordEncoder;
-//        this.mailService = mailService;
-//        this.mailSender = mailSender;
-//        this.emailProperty = emailProperty;
-//    }
-
     public final RegisterResponse register(final RegisterRequest request) {
         if (userRepository.findByUsername(request.getUsername()).isPresent()) {
             log.warn("User with username {} exists, skipping adding", request.getUsername());
             return RegisterResponse.builder()
-                    .created(false)
+                    .success(false)
                     .date(new Date(System.currentTimeMillis()))
-                    .serverResponse("Username exists")
+                    .message("Username exists")
                     .build();
         }
 
         if (detailsRepository.findByEmail(request.getEmail()).isPresent()) {
             log.warn("User with email {} exists, skipping adding", request.getEmail());
             return RegisterResponse.builder()
-                    .created(false)
+                    .success(false)
                     .date(new Date(System.currentTimeMillis()))
-                    .serverResponse("Email exists")
+                    .message("Email exists")
                     .build();
         }
 
         if (detailsRepository.findByNickname(request.getNickname()).isPresent()) {
             log.warn("User with nickname {} exists, skipping adding", request.getNickname());
             return RegisterResponse.builder()
-                    .created(false)
+                    .success(false)
                     .date(new Date(System.currentTimeMillis()))
-                    .serverResponse("Nickname exists")
+                    .message("Nickname exists")
                     .build();
         }
 
@@ -121,16 +111,16 @@ public class AppUserService {
             log.info(SUCCESS_SAVING);
             userRepository.save(appUser);
             return RegisterResponse.builder()
-                    .created(false)
+                    .success(false)
                     .date(new Date(System.currentTimeMillis()))
-                    .serverResponse(SUCCESS_SEND_EMAIL)
+                    .message(SUCCESS_SEND_EMAIL)
                     .build();
         } else {
             log.warn(FAIL_SAVING);
             return RegisterResponse.builder()
-                    .created(true)
+                    .success(true)
                     .date(new Date(System.currentTimeMillis()))
-                    .serverResponse(FAIL_SEND_EMAIL)
+                    .message(FAIL_SEND_EMAIL)
                     .build();
         }
     }
@@ -161,45 +151,67 @@ public class AppUserService {
 
                     emailResponse = ActivateEmailResponse.builder()
                             .activated(activated)
+                            .success(true)
                             .nickname(nickname)
-                            .response(SUCCESS_ACTIVATION_EMAIL)
+                            .message(SUCCESS_ACTIVATION_EMAIL)
                             .date(new Date(System.currentTimeMillis()))
                             .build();
                 },
                 () -> emailResponse = ActivateEmailResponse.builder()
                         .activated(false)
-                        .response(FAIL_ACTIVATION_EMAIL)
+                        .success(false)
+                        .message(FAIL_ACTIVATION_EMAIL)
                         .date(new Date(System.currentTimeMillis()))
                         .build()
         ); return emailResponse;
     }
 
-    private AppUser appUserById;
-    public final AppUser getById(final Long id) {
+    private AppUserResponse userByIdResponse;
+    public final AppUserResponse getById(final Long id) {
         userRepository.findById(id).ifPresentOrElse(
                 (foundUser) -> {
                     log.info(FETCH_BY_ID, toMessageAppUserWord, id);
-                    appUserById = foundUser;
+                    userByIdResponse = AppUserResponse.builder()
+                            .date(new Date(System.currentTimeMillis()))
+                            .success(true)
+                            .message("Found AppUser")
+                            .user(foundUser)
+                            .build();
                 },
                 () -> {
                     log.warn(NOT_FOUND_BY_ID, toMessageAppUserWord, id);
-                    appUserById = new AppUser();
+                    userByIdResponse = AppUserResponse.builder()
+                            .date(new Date(System.currentTimeMillis()))
+                            .success(false)
+                            .message(messageByIdError(id, toMessageAppUserWord))
+                            .user(null)
+                            .build();
                 }
-        ); return appUserById;
+        ); return userByIdResponse;
     }
 
-    private AppUser appUserByUsername;
-    public final AppUser getByUsername(final String username) {
+    private AppUserResponse userByUsernameResponse;
+    public final AppUserResponse getByUsername(final String username) {
         userRepository.findByUsername(username).ifPresentOrElse(
                 (foundUser) -> {
                     log.info(FETCHING_BY_STH_MESSAGE, toMessageAppUserWord, "Username", username);
-                    appUserByUsername = foundUser;
+                    userByUsernameResponse = AppUserResponse.builder()
+                            .date(new Date(System.currentTimeMillis()))
+                            .success(true)
+                            .message("Found AppUser")
+                            .user(foundUser)
+                            .build();
                 },
                 () -> {
                     log.warn(NOT_FOUND_BY_STH, toMessageAppUserWord, "Username", username);
-                    appUserByUsername = new AppUser();
+                    userByUsernameResponse = AppUserResponse.builder()
+                            .date(new Date(System.currentTimeMillis()))
+                            .success(false)
+                            .message(messageBySthError("username", username, toMessageAppUserWord))
+                            .user(null)
+                            .build();
                 }
-        ); return  appUserByUsername;
+        ); return  userByUsernameResponse;
     }
 
     private UniversalResponse updateResponse;
@@ -215,13 +227,13 @@ public class AppUserService {
 
                     response = UniversalResponse.builder()
                             .date(new Date(System.currentTimeMillis()))
-                            .response(SUCCESS_UPDATE)
+                            .message(SUCCESS_UPDATE)
                             .success(true)
                             .build();
                 },
                 () -> updateResponse = UniversalResponse.builder()
                         .date(new Date(System.currentTimeMillis()))
-                        .response(FAIL_UPDATE)
+                        .message(FAIL_UPDATE)
                         .success(false)
                         .build()
         ); return updateResponse;
@@ -236,7 +248,7 @@ public class AppUserService {
 
                     deleteResponse = UniversalResponse.builder()
                             .date(new Date(System.currentTimeMillis()))
-                            .response(SUCCESS_DELETE)
+                            .message(SUCCESS_DELETE)
                             .success(true)
                             .build();
                 },
@@ -244,7 +256,7 @@ public class AppUserService {
                     log.warn(NOT_FOUND_BY_ID, toMessageAppUserWord, id);
                     deleteResponse = UniversalResponse.builder()
                             .date(new Date(System.currentTimeMillis()))
-                            .response(FAIL_DELETE)
+                            .message(FAIL_DELETE)
                             .success(false)
                             .build();
                 }
@@ -270,7 +282,7 @@ public class AppUserService {
                     tokenRepository.save(verificationToken);
                     response = UniversalResponse.builder()
                             .date(new Date(System.currentTimeMillis()))
-                            .response(SUCCESS_SEND_EMAIL_AGAIN)
+                            .message(SUCCESS_SEND_EMAIL_AGAIN)
                             .success(true)
                             .build();
 
@@ -280,7 +292,7 @@ public class AppUserService {
                 },
                 () -> response = UniversalResponse.builder()
                         .date(new Date(System.currentTimeMillis()))
-                        .response(FAIL_SEND_EMAIL_AGAIN)
+                        .message(FAIL_SEND_EMAIL_AGAIN)
                         .success(false)
                         .build()
         ); return response;

@@ -1,10 +1,7 @@
 package pl.scf.model;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.*;
 import java.util.Set;
@@ -13,7 +10,8 @@ import static javax.persistence.CascadeType.ALL;
 import static javax.persistence.FetchType.LAZY;
 import static javax.persistence.GenerationType.IDENTITY;
 
-@Data
+@Getter
+@Setter
 @Entity
 @Builder
 @NoArgsConstructor
@@ -34,4 +32,7 @@ public class Topic {
     @JsonManagedReference
     @ManyToOne(fetch = LAZY)
     private ForumUser user;
+
+    @ManyToOne(fetch = LAZY)
+    private TopicSubCategory subCategory;
 }

@@ -3,49 +3,72 @@ package pl.scf.model.services;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import pl.scf.api.model.AppUserDetailsUpdateRequest;
-import pl.scf.api.model.UniversalResponse;
+import pl.scf.api.model.response.AppUserDetailsResponse;
+import pl.scf.api.model.request.AppUserDetailsUpdateRequest;
+import pl.scf.api.model.response.UniversalResponse;
 import pl.scf.model.AppUserDetails;
 import pl.scf.model.repositories.IAppUserDetailsRepository;
 
 import java.util.Date;
 import java.util.List;
 
-import static pl.scf.api.ApiConstants.*;
+import static pl.scf.api.model.utils.ApiConstants.*;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class AppUserDetailsService {
     private final IAppUserDetailsRepository detailsRepository;
-    private final String toMessageAnswerWord = "AppUserDetails";
+    private final String toMessageDetailsWord = "AppUserDetails";
 
-    private AppUserDetails detailsById;
-    public final AppUserDetails getById(final Long id) {
+    private AppUserDetailsResponse detailsByIdResponse;
+    public final AppUserDetailsResponse getById(final Long id) {
         detailsRepository.findById(id).ifPresentOrElse(
                 (foundDetails) -> {
-                    log.info(FETCH_BY_ID, toMessageAnswerWord, id);
-                    detailsById = foundDetails;
+                    log.info(FETCH_BY_ID, toMessageDetailsWord, id);
+                    detailsByIdResponse = AppUserDetailsResponse.builder()
+                            .date(new Date(System.currentTimeMillis()))
+                            .success(true)
+                            .message("Found UserDetails")
+                            .details(foundDetails)
+                            .build();
                 },
                 () -> {
-                    log.warn(NOT_FOUND_BY_ID, toMessageAnswerWord, id);
-                    detailsById = new AppUserDetails();
+                    log.warn(NOT_FOUND_BY_ID, toMessageDetailsWord, id);
+                    detailsByIdResponse = AppUserDetailsResponse.builder()
+                            .date(new Date(System.currentTimeMillis()))
+                            .success(false)
+                            .message(id != 0
+                                    ? String.format(NOT_FOUND_MESSAGE, toMessageDetailsWord, "id", id)
+                                    : ID_ERROR_MESSAGE)
+                            .details(null)
+                            .build();
                 }
-        ); return detailsById;
+        ); return detailsByIdResponse;
     }
 
-    private AppUserDetails detailsByUsername;
-    public final AppUserDetails getByUsername(final String username) {
+    private AppUserDetailsResponse detailsByUsernameResponse;
+    public final AppUserDetailsResponse getByUsername(final String username) {
         detailsRepository.findByUserUsername(username).ifPresentOrElse(
                 (foundDetails) -> {
-                    log.info(FETCHING_BY_STH_MESSAGE, toMessageAnswerWord, "Username", username);
-                    detailsByUsername = foundDetails;
+                    log.info(FETCHING_BY_STH_MESSAGE, toMessageDetailsWord, "Username", username);
+                    detailsByUsernameResponse = AppUserDetailsResponse.builder()
+                            .date(new Date(System.currentTimeMillis()))
+                            .success(true)
+                            .message("Found UserDetails")
+                            .details(foundDetails)
+                            .build();
                 },
                 () -> {
-                    log.warn(NOT_FOUND_BY_STH, toMessageAnswerWord, "Username", username);
-                    detailsByUsername = new AppUserDetails();
+                    log.warn(NOT_FOUND_BY_STH, toMessageDetailsWord, "Username", username);
+                    detailsByUsernameResponse = AppUserDetailsResponse.builder()
+                            .date(new Date(System.currentTimeMillis()))
+                            .success(false)
+                            .message(String.format(NOT_FOUND_MESSAGE, toMessageDetailsWord, "username", username))
+                            .details(null)
+                            .build();
                 }
-        );  return detailsByUsername;
+        );  return detailsByUsernameResponse;
     }
 
     private UniversalResponse updateResponse;
@@ -53,7 +76,7 @@ public class AppUserDetailsService {
         final Long userId = userDetailsUpdateRequest.getAppUserDetailsUserId();
         detailsRepository.findById(userId).ifPresentOrElse(
                 (foundUser) -> {
-                    log.info(UPDATE_MESSAGE, toMessageAnswerWord, userId);
+                    log.info(UPDATE_MESSAGE, toMessageDetailsWord, userId);
 
                     foundUser.setEmail(userDetailsUpdateRequest.getEmail());
                     detailsRepository.save(foundUser);
@@ -61,15 +84,15 @@ public class AppUserDetailsService {
                     updateResponse = UniversalResponse.builder()
                             .success(true)
                             .date(new Date(System.currentTimeMillis()))
-                            .response(SUCCESS_UPDATE)
+                            .message(SUCCESS_UPDATE)
                             .build();
                 },
                 () -> {
-                    log.warn(NOT_FOUND_BY_ID, toMessageAnswerWord, userId);
+                    log.warn(NOT_FOUND_BY_ID, toMessageDetailsWord, userId);
                     updateResponse = UniversalResponse.builder()
                             .success(false)
                             .date(new Date(System.currentTimeMillis()))
-                            .response(FAIL_UPDATE)
+                            .message(FAIL_UPDATE)
                             .build();
                 }
         ); return updateResponse;
@@ -79,28 +102,28 @@ public class AppUserDetailsService {
     public final UniversalResponse delete(final Long id) {
         detailsRepository.findById(id).ifPresentOrElse(
                 (foundAppUser) -> {
-                    log.info(DELETING_MESSAGE, toMessageAnswerWord ,id);
+                    log.info(DELETING_MESSAGE, toMessageDetailsWord,id);
                     detailsRepository.deleteById(id);
 
                     deleteResponse = UniversalResponse.builder()
                             .success(true)
                             .date(new Date(System.currentTimeMillis()))
-                            .response(SUCCESS_DELETE)
+                            .message(SUCCESS_DELETE)
                             .build();
                 },
                 () -> {
-                    log.warn(NOT_FOUND_BY_ID, toMessageAnswerWord, id);
+                    log.warn(NOT_FOUND_BY_ID, toMessageDetailsWord, id);
                     deleteResponse = UniversalResponse.builder()
                             .success(true)
                             .date(new Date(System.currentTimeMillis()))
-                            .response(FAIL_DELETE)
+                            .message(FAIL_DELETE)
                             .build();
                 }
         ); return deleteResponse;
     }
 
     public final List<AppUserDetails> getAll() {
-        log.info(FETCHING_ALL_MESSAGE, toMessageAnswerWord);
+        log.info(FETCHING_ALL_MESSAGE, toMessageDetailsWord);
         return detailsRepository.findAll();
     }
 }

@@ -3,16 +3,16 @@ package pl.scf.model.services;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import pl.scf.api.model.ForumUserTitleSaveRequest;
-import pl.scf.api.model.ForumUserTitleUpdateRequest;
-import pl.scf.api.model.UniversalResponse;
+import pl.scf.api.model.request.ForumUserTitleSaveRequest;
+import pl.scf.api.model.request.ForumUserTitleUpdateRequest;
+import pl.scf.api.model.response.UniversalResponse;
 import pl.scf.model.ForumUser;
 import pl.scf.model.ForumUserTitle;
 import pl.scf.model.repositories.IForumUserTitleRepository;
 
 import java.util.*;
 
-import static pl.scf.api.ApiConstants.*;
+import static pl.scf.api.model.utils.ApiConstants.*;
 
 @Slf4j
 @Service
@@ -21,33 +21,30 @@ public class ForumUserTitleService {
     private final IForumUserTitleRepository titleRepository;
     private final String toMessageForumUserTitleWord = "ForumUserTitle";
 
-    private UniversalResponse saveResponse;
     public final UniversalResponse save(final ForumUserTitleSaveRequest request) {
-        Optional.ofNullable(request).ifPresentOrElse(
-                (validRequest) -> {
-                    final ForumUserTitle title = ForumUserTitle.builder()
-                            .titleName(validRequest.getTitleName())
-                            .rangeIntervalPoints(validRequest.getRangeIntervalPoints())
-                            .build();
+        try {
+            final ForumUserTitle title = ForumUserTitle.builder()
+                    .titleName(request.getTitleName())
+                    .rangeIntervalPoints(request.getRangeIntervalPoints())
+                    .build();
 
-                    log.info(SAVING, toMessageForumUserTitleWord);
-                    titleRepository.save(title);
+            log.info(SAVING, toMessageForumUserTitleWord);
+            titleRepository.save(title);
 
-                    saveResponse = UniversalResponse.builder()
-                            .success(true)
-                            .date(new Date(System.currentTimeMillis()))
-                            .response(SUCCESS_SAVING)
-                            .build();
-                },
-                () -> {
-                    log.warn(NULLABLE_MESSAGE, "Request");
-                    saveResponse = UniversalResponse.builder()
-                            .success(false)
-                            .date(new Date(System.currentTimeMillis()))
-                            .response(FAIL_SAVING)
-                            .build();
-                }
-        ); return saveResponse;
+            return UniversalResponse.builder()
+                    .success(true)
+                    .date(new Date(System.currentTimeMillis()))
+                    .message(SUCCESS_SAVING)
+                    .build();
+
+        } catch (final Exception exception) {
+            log.warn(NULLABLE_MESSAGE, "Request");
+            return UniversalResponse.builder()
+                    .success(false)
+                    .date(new Date(System.currentTimeMillis()))
+                    .message(FAIL_SAVING)
+                    .build();
+        }
     }
 
     private ForumUserTitle forumUserTitleById;
@@ -77,7 +74,7 @@ public class ForumUserTitleService {
                     updateResponse = UniversalResponse.builder()
                             .success(true)
                             .date(new Date(System.currentTimeMillis()))
-                            .response(SUCCESS_UPDATE)
+                            .message(SUCCESS_UPDATE)
                             .build();
                 },
                 () -> {
@@ -85,7 +82,7 @@ public class ForumUserTitleService {
                     updateResponse = UniversalResponse.builder()
                             .success(false)
                             .date(new Date(System.currentTimeMillis()))
-                            .response(FAIL_UPDATE)
+                            .message(FAIL_UPDATE)
                             .build();
                 }
         ); return updateResponse;
@@ -101,7 +98,7 @@ public class ForumUserTitleService {
                     deleteResponse = UniversalResponse.builder()
                             .success(true)
                             .date(new Date(System.currentTimeMillis()))
-                            .response(SUCCESS_DELETE)
+                            .message(SUCCESS_DELETE)
                             .build();
                 },
                 () -> {
@@ -109,7 +106,7 @@ public class ForumUserTitleService {
                     deleteResponse = UniversalResponse.builder()
                             .success(false)
                             .date(new Date(System.currentTimeMillis()))
-                            .response(FAIL_DELETE)
+                            .message(FAIL_DELETE)
                             .build();
                 }
         ); return deleteResponse;
