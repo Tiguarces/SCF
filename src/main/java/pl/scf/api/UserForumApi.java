@@ -3,6 +3,8 @@ package pl.scf.api;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import pl.scf.api.model.dto.ForumUserDTO;
+import pl.scf.api.model.response.ForumUserResponse;
 import pl.scf.api.model.response.UniversalResponse;
 import pl.scf.model.ForumUser;
 import pl.scf.model.services.ForumUserService;
@@ -29,12 +31,12 @@ public class UserForumApi {
     }
 
     @GetMapping("/all")
-    public final ResponseEntity<List<ForumUser>> getAllUsers() {
+    public final ResponseEntity<List<ForumUserDTO>> getAllUsers() {
         return buildResponseEntity(OK, forumUserService.getAll());
     }
 
     @GetMapping("/username/{username}")
-    public final ResponseEntity<ForumUser> getByUsername(@PathVariable("username") final String username) {
+    public final ResponseEntity<ForumUserResponse> getByUsername(@PathVariable("username") final String username) {
         return buildResponseEntity(OK, forumUserService.getByUsername(username));
     }
 }

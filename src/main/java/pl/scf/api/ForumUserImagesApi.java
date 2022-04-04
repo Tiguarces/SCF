@@ -3,7 +3,9 @@ package pl.scf.api;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import pl.scf.api.model.dto.ForumUserImagesDTO;
 import pl.scf.api.model.request.ForumUserImagesUpdateRequest;
+import pl.scf.api.model.response.ForumUserImagesResponse;
 import pl.scf.api.model.response.UniversalResponse;
 import pl.scf.model.ForumUserImages;
 import pl.scf.model.services.ForumUserImagesService;
@@ -39,12 +41,12 @@ public class ForumUserImagesApi {
     }
 
     @GetMapping("/get/id/{id}")
-    public final ResponseEntity<ForumUserImages> getById(@PathVariable("id") final Long id) {
+    public final ResponseEntity<ForumUserImagesResponse> getById(@PathVariable("id") final Long id) {
         return buildResponseEntity(OK, imagesService.getById(id));
     }
 
     @GetMapping("/all")
-    public final ResponseEntity<List<ForumUserImages>> getAll() {
+    public final ResponseEntity<List<ForumUserImagesDTO>> getAll() {
         return buildResponseEntity(OK, imagesService.getAll());
     }
 }

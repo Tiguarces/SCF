@@ -3,11 +3,11 @@ package pl.scf.api;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import pl.scf.api.model.dto.TopicCategoryDTO;
 import pl.scf.api.model.request.TopicCategorySaveRequest;
 import pl.scf.api.model.request.TopicSubCategoryUpdateRequest;
 import pl.scf.api.model.response.TopicCategoryResponse;
 import pl.scf.api.model.response.UniversalResponse;
-import pl.scf.model.TopicCategory;
 import pl.scf.model.services.TopicCategoryService;
 
 import java.util.List;
@@ -49,7 +49,7 @@ public class TopicCategoryApi {
     }
 
     @GetMapping("/all")
-    public final ResponseEntity<List<TopicCategory>> getAll() {
+    public final ResponseEntity<List<TopicCategoryDTO>> getAll() {
         return buildResponseEntity(OK, categoryService.getAll());
     }
 

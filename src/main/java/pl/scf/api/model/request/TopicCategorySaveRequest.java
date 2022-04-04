@@ -5,4 +5,5 @@ import lombok.Data;
 @Data
 public class TopicCategorySaveRequest {
     private String name;
+    private String subCategoryName;
 }

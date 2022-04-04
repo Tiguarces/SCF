@@ -3,16 +3,17 @@ package pl.scf.model.services;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import pl.scf.api.model.response.AppUserDetailsResponse;
+import pl.scf.api.model.dto.AppUserDetailsDTO;
 import pl.scf.api.model.request.AppUserDetailsUpdateRequest;
+import pl.scf.api.model.response.AppUserDetailsResponse;
 import pl.scf.api.model.response.UniversalResponse;
-import pl.scf.model.AppUserDetails;
 import pl.scf.model.repositories.IAppUserDetailsRepository;
 
 import java.util.Date;
 import java.util.List;
 
 import static pl.scf.api.model.utils.ApiConstants.*;
+import static pl.scf.api.model.utils.DTOMapper.toDetails;
 
 @Slf4j
 @Service
@@ -26,11 +27,19 @@ public class AppUserDetailsService {
         detailsRepository.findById(id).ifPresentOrElse(
                 (foundDetails) -> {
                     log.info(FETCH_BY_ID, toMessageDetailsWord, id);
+                    final AppUserDetailsDTO detailsDTO = AppUserDetailsDTO.builder()
+                            .appUserId(foundDetails.getUser().getId())
+                            .email(foundDetails.getEmail())
+                            .nickname(foundDetails.getNickname())
+                            .createdDate(foundDetails.getCreatedDate())
+                            .forumUserId(foundDetails.getForumUser().getId())
+                            .build();
+
                     detailsByIdResponse = AppUserDetailsResponse.builder()
                             .date(new Date(System.currentTimeMillis()))
                             .success(true)
                             .message("Found UserDetails")
-                            .details(foundDetails)
+                            .details(detailsDTO)
                             .build();
                 },
                 () -> {
@@ -52,11 +61,19 @@ public class AppUserDetailsService {
         detailsRepository.findByUserUsername(username).ifPresentOrElse(
                 (foundDetails) -> {
                     log.info(FETCHING_BY_STH_MESSAGE, toMessageDetailsWord, "Username", username);
+                    final AppUserDetailsDTO detailsDTO = AppUserDetailsDTO.builder()
+                            .appUserId(foundDetails.getUser().getId())
+                            .email(foundDetails.getEmail())
+                            .nickname(foundDetails.getNickname())
+                            .createdDate(foundDetails.getCreatedDate())
+                            .forumUserId(foundDetails.getForumUser().getId())
+                            .build();
+
                     detailsByUsernameResponse = AppUserDetailsResponse.builder()
                             .date(new Date(System.currentTimeMillis()))
                             .success(true)
                             .message("Found UserDetails")
-                            .details(foundDetails)
+                            .details(detailsDTO)
                             .build();
                 },
                 () -> {
@@ -122,8 +139,8 @@ public class AppUserDetailsService {
         ); return deleteResponse;
     }
 
-    public final List<AppUserDetails> getAll() {
+    public final List<AppUserDetailsDTO> getAll() {
         log.info(FETCHING_ALL_MESSAGE, toMessageDetailsWord);
-        return detailsRepository.findAll();
+        return toDetails(detailsRepository.findAll());
     }
 }

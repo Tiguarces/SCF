@@ -5,11 +5,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import pl.scf.api.model.dto.AppUserDTO;
 import pl.scf.api.model.request.RegisterRequest;
 import pl.scf.api.model.request.UpdateUserRequest;
 import pl.scf.api.model.response.ActivateEmailResponse;
 import pl.scf.api.model.response.AppUserResponse;
-import pl.scf.api.model.response.RegisterResponse;
 import pl.scf.api.model.response.UniversalResponse;
 import pl.scf.model.*;
 import pl.scf.model.mail.MailNotification;
@@ -24,6 +24,7 @@ import java.util.UUID;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static pl.scf.api.model.utils.ApiConstants.*;
+import static pl.scf.api.model.utils.DTOMapper.toAppUser;
 import static pl.scf.api.model.utils.ResponseUtil.messageByIdError;
 import static pl.scf.api.model.utils.ResponseUtil.messageBySthError;
 
@@ -42,31 +43,31 @@ public class AppUserService {
     private final EmailProperty emailProperty;
     private final String toMessageAppUserWord = "AppUser";
 
-    public final RegisterResponse register(final RegisterRequest request) {
+    public final UniversalResponse register(final RegisterRequest request) {
         if (userRepository.findByUsername(request.getUsername()).isPresent()) {
             log.warn("User with username {} exists, skipping adding", request.getUsername());
-            return RegisterResponse.builder()
+            return UniversalResponse.builder()
                     .success(false)
                     .date(new Date(System.currentTimeMillis()))
-                    .message("Username exists")
+                    .message("Użytkownik już istnieje")
                     .build();
         }
 
         if (detailsRepository.findByEmail(request.getEmail()).isPresent()) {
             log.warn("User with email {} exists, skipping adding", request.getEmail());
-            return RegisterResponse.builder()
+            return UniversalResponse.builder()
                     .success(false)
                     .date(new Date(System.currentTimeMillis()))
-                    .message("Email exists")
+                    .message("Email został już wykorzystany")
                     .build();
         }
 
         if (detailsRepository.findByNickname(request.getNickname()).isPresent()) {
             log.warn("User with nickname {} exists, skipping adding", request.getNickname());
-            return RegisterResponse.builder()
+            return UniversalResponse.builder()
                     .success(false)
                     .date(new Date(System.currentTimeMillis()))
-                    .message("Nickname exists")
+                    .message("Nick zajęty")
                     .build();
         }
 
@@ -110,15 +111,15 @@ public class AppUserService {
         if(isSent) {
             log.info(SUCCESS_SAVING);
             userRepository.save(appUser);
-            return RegisterResponse.builder()
-                    .success(false)
+            return UniversalResponse.builder()
+                    .success(true)
                     .date(new Date(System.currentTimeMillis()))
                     .message(SUCCESS_SEND_EMAIL)
                     .build();
         } else {
             log.warn(FAIL_SAVING);
-            return RegisterResponse.builder()
-                    .success(true)
+            return UniversalResponse.builder()
+                    .success(false)
                     .date(new Date(System.currentTimeMillis()))
                     .message(FAIL_SEND_EMAIL)
                     .build();
@@ -171,11 +172,18 @@ public class AppUserService {
         userRepository.findById(id).ifPresentOrElse(
                 (foundUser) -> {
                     log.info(FETCH_BY_ID, toMessageAppUserWord, id);
+                    final AppUserDTO userDTO = AppUserDTO.builder()
+                            .detailsId(foundUser.getUser_details().getId())
+                            .username(foundUser.getUsername())
+                            .roleName(foundUser.getRole().getName())
+                            .verTokenId(foundUser.getToken().getId())
+                            .build();
+
                     userByIdResponse = AppUserResponse.builder()
                             .date(new Date(System.currentTimeMillis()))
                             .success(true)
                             .message("Found AppUser")
-                            .user(foundUser)
+                            .user(userDTO)
                             .build();
                 },
                 () -> {
@@ -195,11 +203,18 @@ public class AppUserService {
         userRepository.findByUsername(username).ifPresentOrElse(
                 (foundUser) -> {
                     log.info(FETCHING_BY_STH_MESSAGE, toMessageAppUserWord, "Username", username);
+                    final AppUserDTO userDTO = AppUserDTO.builder()
+                            .detailsId(foundUser.getUser_details().getId())
+                            .username(foundUser.getUsername())
+                            .roleName(foundUser.getRole().getName())
+                            .verTokenId(foundUser.getToken().getId())
+                            .build();
+
                     userByUsernameResponse = AppUserResponse.builder()
                             .date(new Date(System.currentTimeMillis()))
                             .success(true)
                             .message("Found AppUser")
-                            .user(foundUser)
+                            .user(userDTO)
                             .build();
                 },
                 () -> {
@@ -263,11 +278,6 @@ public class AppUserService {
         ); return deleteResponse;
     }
 
-    public final List<AppUser> getAll() {
-        log.info(FETCHING_ALL_MESSAGE, toMessageAppUserWord);
-        return userRepository.findAll();
-    }
-
     private UniversalResponse response;
     public final UniversalResponse sendEmailAgain(final Long userId) {
         userRepository.findById(userId).ifPresentOrElse(
@@ -296,5 +306,20 @@ public class AppUserService {
                         .success(false)
                         .build()
         ); return response;
+    }
+
+    public final List<AppUserDTO> getAll() {
+        log.info(FETCHING_ALL_MESSAGE, toMessageAppUserWord);
+        return toAppUser(userRepository.findAll());
+    }
+
+    public UniversalResponse deleteAll() {
+        log.info(DELETE_ALL, toMessageAppUserWord);
+        userRepository.deleteAll();
+        return UniversalResponse.builder()
+                .success(true)
+                .date(new Date(System.currentTimeMillis()))
+                .message(SUCCESS_DELETE)
+                .build();
     }
 }

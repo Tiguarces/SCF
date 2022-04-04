@@ -1,0 +1,45 @@
+<div id="container">
+  <div class="panel">
+    <p>Logowanie</p>
+
+    <form id="login" [formGroup]="loginForm" (ngSubmit)="loginUser()">
+        <label>
+          <input formControlName="login" type="text" placeholder="Wpisz swój login" required>
+        </label>
+
+        <label>
+          <input formControlName="password" type="password" placeholder="Wpisz swoje hasło" autocomplete="on" required>
+        </label>
+
+        <label>
+          <input type="submit" value="Zaloguj się">
+        </label>
+    </form>
+  </div>
+
+  <div class="panel">
+    <p>Rejestracja</p>
+
+    <form id="register" [formGroup]="registerForm" (ngSubmit)="registerUser()">
+      <label>
+        <input formControlName="login" type="text" placeholder="Wpisz swój login" required>
+      </label>
+
+      <label>
+        <input formControlName="password" type="password" placeholder="Wpisz swoje hasło" autocomplete="on" required>
+      </label>
+
+      <label>
+        <input formControlName="nickname" type="text" placeholder="Wpisz swój nick" required>
+      </label>
+
+      <label>
+        <input formControlName="email" type="email" placeholder="Wpisz swój email" required>
+      </label>
+
+      <label>
+        <input type="submit" value="Stwórz konto">
+      </label>
+    </form>
+  </div>
+</div>

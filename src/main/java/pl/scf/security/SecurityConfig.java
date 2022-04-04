@@ -36,13 +36,18 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private IAppUserRepository userRepository;
     private JWTProperty jwtProperty;
 
+
+    // TODO: zrobić update requestów
     private final String[] allowedRoutes = new String[] {
             "/login",
             "/logout",
 
             "/auth/register",
             "/auth/activate/**",
-            "/auth/email/sendAgain/**"
+            "/auth/email/sendAgain/**",
+
+            "/all/amount/{amount}",
+            "/topic/category/all/names",
     };
 
     private final String[] administrator_moderatorRoutes = new String[] {
@@ -55,7 +60,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             "/topic/category/**",
             "/forumUser/title/**",
             "/forumUser/images/**",
-            "/forumUser/description/**"
+            "/forumUser/description/**",
     };
 
     private final String[] forUserRoutes = new String[] {

@@ -1,0 +1,7 @@
+@import '~ngx-toastr/toastr';
+
+body {
+    margin: 0;
+    font-family: 'Roboto Condensed', sans-serif;
+    background-color: #202324;
+}

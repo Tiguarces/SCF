@@ -3,6 +3,7 @@ package pl.scf.api;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import pl.scf.api.model.dto.AnswerDTO;
 import pl.scf.api.model.request.AnswerSaveRequest;
 import pl.scf.api.model.request.UpdateAnswerRequest;
 import pl.scf.api.model.response.UniversalResponse;
@@ -46,12 +47,22 @@ public class AnswerApi {
     }
 
     @GetMapping("/get/topic/{id}")
-    public final ResponseEntity<List<Answer>> getAllByTopicId(@PathVariable("id") final Long id) {
+    public final ResponseEntity<List<AnswerDTO>> getAllByTopicId(@PathVariable("id") final Long id) {
         return buildResponseEntity(OK, answerService.getAllAnswersByTopicId(id));
     }
 
+    @GetMapping("/get/all")
+    public final ResponseEntity<List<AnswerDTO>> getAll() {
+        return buildResponseEntity(OK, answerService.getAll());
+    }
+
     @GetMapping("/get/user/{id}")
-    public final ResponseEntity<List<Answer>> getAllByUserId(@PathVariable("id") final Long id) {
+    public final ResponseEntity<List<AnswerDTO>> getAllByUserId(@PathVariable("id") final Long id) {
         return buildResponseEntity(OK, answerService.getAllAnswersByUserId(id));
+    }
+
+    @GetMapping("/all/amount/{amount}")
+    public final ResponseEntity<List<AnswerDTO>> getLastAnswers(@PathVariable("amount") final Long amount) {
+        return buildResponseEntity(OK, answerService.getAllLastAnswers(amount));
     }
 }

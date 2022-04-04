@@ -3,9 +3,10 @@ package pl.scf.model.services;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import pl.scf.api.model.dto.TopicSubCategoryDTO;
+import pl.scf.api.model.request.TopicSubCategorySaveRequest;
 import pl.scf.api.model.request.TopicSubCategoryUpdateRequest;
 import pl.scf.api.model.response.TopicSubCategoryResponse;
-import pl.scf.api.model.request.TopicSubCategorySaveRequest;
 import pl.scf.api.model.response.UniversalResponse;
 import pl.scf.model.TopicSubCategory;
 import pl.scf.model.repositories.ITopicCategoryRepository;
@@ -16,6 +17,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static pl.scf.api.model.utils.ApiConstants.*;
+import static pl.scf.api.model.utils.DTOMapper.toSubCategory;
+import static pl.scf.api.model.utils.DTOMapper.toSubCategoryNames;
 import static pl.scf.api.model.utils.ResponseUtil.messageByIdError;
 
 @Slf4j
@@ -123,17 +126,14 @@ public class TopicSubCategoryService {
         ); return deleteResponse;
     }
 
-    public final List<TopicSubCategory> getAll() {
+    public final List<TopicSubCategoryDTO> getAll() {
         log.info(FETCHING_ALL_MESSAGE, toMessageTopicSubCategoryWord);
-        return subCategoryRepository.findAll();
+        return toSubCategory(subCategoryRepository.findAll());
     }
 
     public final List<String> getAllNames() {
         log.info(FETCHING_ALL_MESSAGE, toMessageTopicSubCategoryWord + " names");
-        return subCategoryRepository.findAll()
-                .stream()
-                .map(TopicSubCategory::getName)
-                .collect(Collectors.toList());
+        return toSubCategoryNames(subCategoryRepository.findAll());
     }
 
     private TopicSubCategoryResponse getByIdTopic;
@@ -141,11 +141,16 @@ public class TopicSubCategoryService {
         subCategoryRepository.findById(id).ifPresentOrElse(
                 (foundCategory) -> {
                     log.info(FETCH_BY_ID, toMessageTopicSubCategoryWord, id);
+                    final TopicSubCategoryDTO subCategoryDTO = TopicSubCategoryDTO.builder()
+                            .name(foundCategory.getName())
+                            .topicNameCategory(foundCategory.getCategory().getName())
+                            .build();
+
                     getByIdTopic = TopicSubCategoryResponse.builder()
-                            .subCategory(foundCategory)
-                            .message("Found category")
-                            .date(new Date(System.currentTimeMillis()))
                             .success(true)
+                            .date(new Date(System.currentTimeMillis()))
+                            .message("Found category")
+                            .subCategory(subCategoryDTO)
                             .build();
                 },
                 () -> {

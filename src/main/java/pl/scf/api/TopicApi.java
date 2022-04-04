@@ -3,8 +3,11 @@ package pl.scf.api;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import pl.scf.api.model.dto.AnswerDTO;
+import pl.scf.api.model.dto.TopicDTO;
 import pl.scf.api.model.request.TopicSaveRequest;
 import pl.scf.api.model.request.TopicUpdateRequest;
+import pl.scf.api.model.response.TopicResponse;
 import pl.scf.api.model.response.UniversalResponse;
 import pl.scf.model.Answer;
 import pl.scf.model.Topic;
@@ -50,22 +53,22 @@ public class TopicApi {
     }
 
     @GetMapping("/get/id/{id}")
-    public final ResponseEntity<Topic> getById(@PathVariable("id") final Long id) {
+    public final ResponseEntity<TopicResponse> getById(@PathVariable("id") final Long id) {
         return buildResponseEntity(OK, topicService.getById(id));
     }
 
     @GetMapping("/get/user/all/id/{id}")
-    public final ResponseEntity<List<Topic>> getAllByUserId(@PathVariable("id") final Long userId) {
+    public final ResponseEntity<List<TopicDTO>> getAllByUserId(@PathVariable("id") final Long userId) {
         return buildResponseEntity(OK, topicService.getAllByUserId(userId));
     }
 
     @GetMapping("/all")
-    public final ResponseEntity<List<Topic>> getAll() {
+    public final ResponseEntity<List<TopicDTO>> getAll() {
         return buildResponseEntity(OK, topicService.getAll());
     }
 
     @GetMapping("/get/answers/id/{id}")
-    public final ResponseEntity<List<Answer>> getAllAnswersByTopicId(@PathVariable("id") final Long id) {
+    public final ResponseEntity<List<AnswerDTO>> getAllAnswersByTopicId(@PathVariable("id") final Long id) {
         return buildResponseEntity(OK, topicService.getAllAnswers(id));
     }
 }

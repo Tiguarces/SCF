@@ -3,7 +3,9 @@ package pl.scf.model.services;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import pl.scf.api.model.dto.ForumUserImagesDTO;
 import pl.scf.api.model.request.ForumUserImagesUpdateRequest;
+import pl.scf.api.model.response.ForumUserImagesResponse;
 import pl.scf.api.model.response.UniversalResponse;
 import pl.scf.model.ForumUserImages;
 import pl.scf.model.repositories.IForumUserImagesRepository;
@@ -12,6 +14,7 @@ import java.util.Date;
 import java.util.List;
 
 import static pl.scf.api.model.utils.ApiConstants.*;
+import static pl.scf.api.model.utils.DTOMapper.toForumUserImages;
 
 @Slf4j
 @Service
@@ -19,20 +22,6 @@ import static pl.scf.api.model.utils.ApiConstants.*;
 public class ForumUserImagesService {
     private final IForumUserImagesRepository imagesRepository;
     private final String toMessageForumUserImagesWord = "ForumUserImages";
-
-    private ForumUserImages imagesById;
-    public final ForumUserImages getById(final Long id) {
-        imagesRepository.findById(id).ifPresentOrElse(
-                (foundImages) -> {
-                    log.info(FETCH_BY_ID, toMessageForumUserImagesWord, id);
-                    imagesById = foundImages;
-                },
-                () -> {
-                    log.warn(NOT_FOUND_BY_ID, toMessageForumUserImagesWord, id);
-                    imagesById = new ForumUserImages();
-                }
-        ); return imagesById;
-    }
 
     private UniversalResponse updateResponse;
     public final UniversalResponse update(final ForumUserImagesUpdateRequest request) {
@@ -85,8 +74,38 @@ public class ForumUserImagesService {
         ); return deleteResponse;
     }
 
-    public final List<ForumUserImages> getAll() {
+    private ForumUserImagesResponse imagesByIdResponse;
+    public final ForumUserImagesResponse getById(final Long id) {
+        imagesRepository.findById(id).ifPresentOrElse(
+                (foundImages) -> {
+                    log.info(FETCH_BY_ID, toMessageForumUserImagesWord, id);
+                    final ForumUserImagesDTO imagesDTO = ForumUserImagesDTO.builder()
+                            .forumUserId(foundImages.getUser().getId())
+                            .avatarImageURL(foundImages.getAvatarImageURL())
+                            .backgroundImageURL(foundImages.getBackgroundImageURL())
+                            .build();
+
+                    imagesByIdResponse = ForumUserImagesResponse.builder()
+                            .success(true)
+                            .date(new Date(System.currentTimeMillis()))
+                            .message(SUCCESS_FETCHING)
+                            .forumUserImages(imagesDTO)
+                            .build();
+                },
+                () -> {
+                    log.warn(NOT_FOUND_BY_ID, toMessageForumUserImagesWord, id);
+                    imagesByIdResponse = ForumUserImagesResponse.builder()
+                            .success(false)
+                            .date(new Date(System.currentTimeMillis()))
+                            .message(FAIL_FETCHING)
+                            .forumUserImages(null)
+                            .build();
+                }
+        ); return imagesByIdResponse;
+    }
+
+    public final List<ForumUserImagesDTO> getAll() {
         log.info(FETCHING_ALL_MESSAGE, toMessageForumUserImagesWord);
-        return imagesRepository.findAll();
+        return toForumUserImages(imagesRepository.findAll());
     }
 }

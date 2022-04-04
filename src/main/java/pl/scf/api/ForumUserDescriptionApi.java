@@ -3,9 +3,10 @@ package pl.scf.api;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import pl.scf.api.model.dto.ForumUserDescriptionDTO;
 import pl.scf.api.model.request.ForumUserDescriptionUpdateRequest;
+import pl.scf.api.model.response.ForumUserDescriptionResponse;
 import pl.scf.api.model.response.UniversalResponse;
-import pl.scf.model.ForumUserDescription;
 import pl.scf.model.services.ForumUserDescriptionService;
 
 import java.util.List;
@@ -39,12 +40,12 @@ public class ForumUserDescriptionApi {
     }
 
     @GetMapping("/get/id/{id}")
-    public final ResponseEntity<ForumUserDescription> getById(@PathVariable("id") final Long id) {
+    public final ResponseEntity<ForumUserDescriptionResponse> getById(@PathVariable("id") final Long id) {
         return buildResponseEntity(OK, descriptionService.getById(id));
     }
 
     @GetMapping("/all")
-    public final ResponseEntity<List<ForumUserDescription>> getAll() {
+    public final ResponseEntity<List<ForumUserDescriptionDTO>> getAll() {
         return buildResponseEntity(OK, descriptionService.getAll());
     }
 }

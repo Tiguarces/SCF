@@ -1,0 +1,71 @@
+#container {
+  width: 100%;
+  min-height: 500px;
+  overflow: hidden;
+  margin-bottom: 5%;
+}
+
+#categories {
+  float: left;
+  width: 80%;
+  min-height: 500px;
+
+  padding: 25px;
+  box-sizing: border-box;
+}
+
+.category {
+  width: 97%;
+  height: 10vh;
+
+  box-sizing: border-box;
+  background-color: white;
+  border: 1px solid black;
+}
+
+#rightBar {
+  float: left;
+  width: 20%;
+  min-height: 1000px;
+
+  box-sizing: border-box;
+
+  display: flex;
+  flex-grow: 1;
+  flex-wrap: wrap;
+
+  padding-top: 25px;
+  padding-right: 15px;
+  box-sizing: border-box;
+}
+
+#rightBar div {
+  width: 100%;
+  height: 50vh;
+
+  border: 1px solid white;
+  background-color: #2a2f30;
+  box-sizing: border-box;
+}
+
+#rightBar div:first-child {
+  height: 7vh;
+  background-color: rgb(204, 138, 15);
+}
+
+#rightBar div:nth-child(2) p,
+#rightBar div:nth-child(3) p {
+  margin: 0;
+  padding: 3%;
+  height: 5vh;
+
+  font-weight: 600;
+  box-sizing: border-box;
+  background-color: black;
+  border-bottom: 1px solid white;
+}
+
+#rightBar p {
+  text-align: center;
+  color: white;
+}

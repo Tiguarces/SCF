@@ -3,8 +3,10 @@ package pl.scf.model.services;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import pl.scf.api.model.response.UniversalResponse;
+import pl.scf.api.model.dto.UserRoleDTO;
 import pl.scf.api.model.request.UserRoleUpdateRequest;
+import pl.scf.api.model.response.UniversalResponse;
+import pl.scf.api.model.response.UserRoleResponse;
 import pl.scf.model.UserRole;
 import pl.scf.model.repositories.IUserRoleRepository;
 
@@ -13,6 +15,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static pl.scf.api.model.utils.ApiConstants.*;
+import static pl.scf.api.model.utils.DTOMapper.toRoles;
 
 @Slf4j
 @Service
@@ -56,32 +59,60 @@ public class UserRoleService {
         } return saveResponse;
     }
 
-    private UserRole getByIdRole;
-    public final UserRole getById(final Long id) {
+    private UserRoleResponse roleByIdResponse;
+    public final UserRoleResponse getById(final Long id) {
         roleRepository.findById(id).ifPresentOrElse(
                 (foundRole) -> {
                     log.info(FETCH_BY_ID, toMessageUserRoleWord, id);
-                    getByIdRole = foundRole;
+                    final UserRoleDTO roleDTO = UserRoleDTO.builder()
+                            .name(foundRole.getName())
+                            .build();
+
+                    roleByIdResponse = UserRoleResponse.builder()
+                            .success(true)
+                            .date(new Date(System.currentTimeMillis()))
+                            .message(SUCCESS_FETCHING)
+                            .userRole(roleDTO)
+                            .build();
                 },
                 () -> {
                     log.warn(NOT_FOUND_BY_ID, toMessageUserRoleWord, id);
-                    getByIdRole = new UserRole();
+                    roleByIdResponse = UserRoleResponse.builder()
+                            .success(false)
+                            .date(new Date(System.currentTimeMillis()))
+                            .message(FAIL_FETCHING)
+                            .userRole(null)
+                            .build();
                 }
-        ); return getByIdRole;
+        ); return roleByIdResponse;
     }
 
-    private UserRole getByNameRole;
-    public final UserRole getByName(final String name) {
+    private UserRoleResponse roleByNameResponse;
+    public final UserRoleResponse getByName(final String name) {
         Optional.ofNullable(roleRepository.findByName(name)).ifPresentOrElse(
                 (foundRole) -> {
                     log.info(FETCHING_BY_STH_MESSAGE, toMessageUserRoleWord, "name", name);
-                    getByNameRole = foundRole;
+                    final UserRoleDTO roleDTO = UserRoleDTO.builder()
+                            .name(foundRole.getName())
+                            .build();
+
+                    roleByNameResponse = UserRoleResponse.builder()
+                            .success(true)
+                            .date(new Date(System.currentTimeMillis()))
+                            .message(SUCCESS_FETCHING)
+                            .userRole(roleDTO)
+                            .build();
                 },
                 () -> {
                     log.warn(NOT_FOUND_BY_STH, toMessageUserRoleWord, "name", name);
-                    getByNameRole = new UserRole();
+                    roleByNameResponse = UserRoleResponse.builder()
+                            .success(false)
+                            .date(new Date(System.currentTimeMillis()))
+                            .message(FAIL_FETCHING)
+                            .userRole(null)
+                            .build();
                 }
-        ); return getByNameRole;
+        ); return roleByNameResponse;
     }
 
     private UniversalResponse updateResponse;
@@ -143,8 +174,8 @@ public class UserRoleService {
         ); return deleteResponse;
     }
 
-    public final List<UserRole> getAll() {
+    public final List<UserRoleDTO> getAll() {
         log.info(FETCHING_ALL_MESSAGE, toMessageUserRoleWord);
-        return roleRepository.findAll();
+        return toRoles(roleRepository.findAll());
     }
 }

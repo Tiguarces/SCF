@@ -3,8 +3,11 @@ package pl.scf.api;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import pl.scf.api.model.dto.ForumUserDTO;
+import pl.scf.api.model.dto.ForumUserTitleDTO;
 import pl.scf.api.model.request.ForumUserTitleSaveRequest;
 import pl.scf.api.model.request.ForumUserTitleUpdateRequest;
+import pl.scf.api.model.response.ForumUserTitleResponse;
 import pl.scf.api.model.response.UniversalResponse;
 import pl.scf.model.ForumUser;
 import pl.scf.model.ForumUserTitle;
@@ -51,17 +54,17 @@ public class ForumUserTitleApi {
     }
 
     @GetMapping("/get/id/{id}")
-    public final ResponseEntity<ForumUserTitle> getById(@PathVariable("id") final Long id) {
+    public final ResponseEntity<ForumUserTitleResponse> getById(@PathVariable("id") final Long id) {
         return buildResponseEntity(OK, titleService.getById(id));
     }
 
-    @GetMapping("/all")
-    public final ResponseEntity<List<ForumUserTitle>> getAll() {
+    @GetMapping("/get/all")
+    public final ResponseEntity<List<ForumUserTitleDTO>> getAll() {
         return buildResponseEntity(OK, titleService.getAll());
     }
 
     @GetMapping("/all/names/{name}")
-    public final ResponseEntity<List<ForumUser>> getAllUsersByTitleName(@PathVariable("name") final String name) {
+    public final ResponseEntity<List<ForumUserDTO>> getAllUsersByTitleName(@PathVariable("name") final String name) {
         return buildResponseEntity(OK, titleService.getAllByTitleName(name));
     }
 

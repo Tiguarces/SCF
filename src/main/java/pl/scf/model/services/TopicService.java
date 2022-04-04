@@ -3,9 +3,12 @@ package pl.scf.model.services;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import pl.scf.api.model.dto.AnswerDTO;
+import pl.scf.api.model.dto.TopicDTO;
 import pl.scf.api.model.exception.NotFoundException;
 import pl.scf.api.model.request.TopicSaveRequest;
 import pl.scf.api.model.request.TopicUpdateRequest;
+import pl.scf.api.model.response.TopicResponse;
 import pl.scf.api.model.response.UniversalResponse;
 import pl.scf.model.*;
 import pl.scf.model.repositories.IForumUserRepository;
@@ -72,18 +75,34 @@ public class TopicService {
         }
     }
 
-    private Topic getByIdTopic;
-    public final Topic getById(final Long id) {
+    private TopicResponse topicByIdResponse;
+    public final TopicResponse getById(final Long id) {
         topicRepository.findById(id).ifPresentOrElse(
                 (foundTopic) -> {
                     log.info(FETCH_BY_ID, toMessageTopicWord, id);
-                    getByIdTopic = foundTopic;
+                    final TopicDTO topicDTO = TopicDTO.builder()
+                            .detailsId(foundTopic.getDetails().getId())
+                            .subCategoryName(foundTopic.getSubCategory().getName())
+                            .userId(foundTopic.getUser().getId())
+                            .build();
+
+                    topicByIdResponse = TopicResponse.builder()
+                            .success(true)
+                            .date(new Date(System.currentTimeMillis()))
+                            .message(SUCCESS_FETCHING)
+                            .topic(topicDTO)
+                            .build();
                 },
                 () -> {
                     log.warn(NOT_FOUND_BY_ID, toMessageTopicWord, id);
-                    getByIdTopic = new Topic();
+                    topicByIdResponse = TopicResponse.builder()
+                            .success(false)
+                            .date(new Date(System.currentTimeMillis()))
+                            .message(FAIL_FETCHING)
+                            .topic(null)
+                            .build();
                 }
-        ); return getByIdTopic;
+        ); return topicByIdResponse;
     }
 
     private UniversalResponse updateResponse;
@@ -136,18 +155,44 @@ public class TopicService {
         ); return deleteResponse;
     }
 
-    public final List<Topic> getAll() {
+    public final List<TopicDTO> getAll() {
         log.info(FETCHING_ALL_MESSAGE, toMessageTopicWord);
-        return topicRepository.findAll();
+        return topicRepository.findAll()
+                .parallelStream()
+                .map(TopicService::toTopicDto)
+                .toList();
     }
 
-    public final List<Topic> getAllByUserId(final Long userId) {
+    public final List<TopicDTO> getAllByUserId(final Long userId) {
         log.info(FETCHING_BY_STH_MESSAGE, toMessageTopicWord, "id", userId);
-        return topicRepository.findAllByUserId(userId);
+        return topicRepository.findAllByUserId(userId)
+                .parallelStream()
+                .map(TopicService::toTopicDto)
+                .toList();
     }
 
-    public final List<Answer> getAllAnswers(final Long topicId) {
+    private static TopicDTO toTopicDto(final Topic topic) {
+        return TopicDTO.builder()
+                .detailsId(topic.getDetails().getId())
+                .subCategoryName(topic.getSubCategory().getName())
+                .userId(topic.getUser().getId())
+                .build();
+    }
+
+    public final List<AnswerDTO> getAllAnswers(final Long topicId) {
         log.info("Fetching all Answers from Topic with id: {}", topicId);
-        return topicRepository.findAllAnswersById(topicId);
+        return topicRepository.findAllAnswersById(topicId)
+                .parallelStream()
+                .map(TopicService::toAnswerDto)
+                .toList();
+    }
+
+    private static AnswerDTO toAnswerDto(final Answer answer) {
+        return AnswerDTO.builder()
+                .content(answer.getContent())
+                .createdDate(answer.getCreatedDate())
+                .topicId(answer.getTopic().getId())
+                .forumUserId(answer.getUser().getId())
+                .build();
     }
 }

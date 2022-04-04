@@ -3,6 +3,8 @@ package pl.scf.model.services;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import pl.scf.api.model.dto.ForumUserDTO;
+import pl.scf.api.model.response.ForumUserResponse;
 import pl.scf.api.model.response.UniversalResponse;
 import pl.scf.model.ForumUser;
 import pl.scf.model.repositories.IForumUserRepository;
@@ -11,6 +13,7 @@ import java.util.Date;
 import java.util.List;
 
 import static pl.scf.api.model.utils.ApiConstants.*;
+import static pl.scf.api.model.utils.DTOMapper.toForumUser;
 
 @Slf4j
 @Service
@@ -18,20 +21,6 @@ import static pl.scf.api.model.utils.ApiConstants.*;
 public class ForumUserService {
     private final IForumUserRepository userRepository;
     private final String toMessageForumUserWord = "ForumUser";
-
-    private ForumUser userByUsername;
-    public final ForumUser getByUsername(final String username) {
-        userRepository.findByUserUsername(username).ifPresentOrElse(
-                (foundUser) -> {
-                    log.info(FETCHING_BY_STH_MESSAGE, toMessageForumUserWord, "Username", username);
-                    userByUsername = foundUser;
-                },
-                () -> {
-                    log.warn(NOT_FOUND_BY_STH, toMessageForumUserWord, "Username", username);
-                    userByUsername = new ForumUser();
-                }
-        ); return userByUsername;
-    }
 
     private UniversalResponse deleteResponse;
     public final UniversalResponse delete(final Long id) {
@@ -57,8 +46,40 @@ public class ForumUserService {
         ); return deleteResponse;
     }
 
-    public final List<ForumUser> getAll() {
+    private ForumUserResponse userByUsernameResponse;
+    public final ForumUserResponse getByUsername(final String username) {
+        userRepository.findByUserUsername(username).ifPresentOrElse(
+                (foundUser) -> {
+                    log.info(FETCHING_BY_STH_MESSAGE, toMessageForumUserWord, "Username", username);
+                    final ForumUserDTO forumUserDTO = ForumUserDTO.builder()
+                            .appUserId(foundUser.getUser().getId())
+                            .descriptionId(foundUser.getDescription().getId())
+                            .imagesId(foundUser.getImages().getId())
+                            .reputation(foundUser.getReputation())
+                            .visitors(foundUser.getVisitors())
+                            .build();
+
+                    userByUsernameResponse = ForumUserResponse.builder()
+                            .success(true)
+                            .date(new Date(System.currentTimeMillis()))
+                            .message(SUCCESS_FETCHING)
+                            .forumUser(forumUserDTO)
+                            .build();
+                },
+                () -> {
+                    log.warn(NOT_FOUND_BY_STH, toMessageForumUserWord, "Username", username);
+                    userByUsernameResponse = ForumUserResponse.builder()
+                            .success(false)
+                            .date(new Date(System.currentTimeMillis()))
+                            .message(FAIL_FETCHING)
+                            .forumUser(null)
+                            .build();
+                }
+        ); return userByUsernameResponse;
+    }
+
+    public final List<ForumUserDTO> getAll() {
         log.info(FETCHING_ALL_MESSAGE, toMessageForumUserWord);
-        return userRepository.findAll();
+        return toForumUser(userRepository.findAll());
     }
 }

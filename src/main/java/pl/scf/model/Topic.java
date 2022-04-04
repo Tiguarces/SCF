@@ -33,6 +33,6 @@ public class Topic {
     @ManyToOne(fetch = LAZY)
     private ForumUser user;
 
-    @ManyToOne(fetch = LAZY)
+    @ManyToOne(fetch = LAZY, cascade = ALL)
     private TopicSubCategory subCategory;
 }

@@ -37,4 +37,8 @@ public final class ApiConstants {
     public static final String NOT_VALID_ELEMENT_MESSAGE = "%s is null or empty";
     public static final String NOT_FOUND_MESSAGE = "Not found %s with %s: %s";
     public static final String ID_ERROR_MESSAGE = "Id must be greater than 0";
+    public static final String ELEMENT_EXISTS = "%s exists in the database";
+    public static final String SUCCESS_FETCHING = "Successfully fetching";
+    public static final String FAIL_FETCHING = "Failure fetching";
+    public static final String DELETE_ALL = "Delete all {}";
 }

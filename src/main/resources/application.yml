@@ -10,7 +10,7 @@ spring:
       enabled: ALWAYS
   datasource:
     url: 'jdbc:mysql://localhost:3306/scf'
-    username: dawid
+    username: dejwid
     password: passat
   jpa:
     show-sql: true

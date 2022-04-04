@@ -3,16 +3,24 @@ package pl.scf.model.services;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import pl.scf.api.model.dto.ForumUserDTO;
+import pl.scf.api.model.dto.ForumUserTitleDTO;
 import pl.scf.api.model.request.ForumUserTitleSaveRequest;
 import pl.scf.api.model.request.ForumUserTitleUpdateRequest;
+import pl.scf.api.model.response.ForumUserTitleResponse;
 import pl.scf.api.model.response.UniversalResponse;
 import pl.scf.model.ForumUser;
 import pl.scf.model.ForumUserTitle;
 import pl.scf.model.repositories.IForumUserTitleRepository;
 
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static pl.scf.api.model.utils.ApiConstants.*;
+import static pl.scf.api.model.utils.DTOMapper.toForumUser;
+import static pl.scf.api.model.utils.DTOMapper.toForumUserTitle;
 
 @Slf4j
 @Service
@@ -47,18 +55,33 @@ public class ForumUserTitleService {
         }
     }
 
-    private ForumUserTitle forumUserTitleById;
-    public final ForumUserTitle getById(final Long id) {
+    private ForumUserTitleResponse userByIdResponse;
+    public final ForumUserTitleResponse getById(final Long id) {
         titleRepository.findById(id).ifPresentOrElse(
                 (foundTitle) -> {
                     log.info(FETCH_BY_ID, toMessageForumUserTitleWord, id);
-                    forumUserTitleById = foundTitle;
+                    final ForumUserTitleDTO titleDTO = ForumUserTitleDTO.builder()
+                            .titleName(foundTitle.getTitleName())
+                            .rangeIntervalPoints(foundTitle.getRangeIntervalPoints())
+                            .build();
+
+                    userByIdResponse = ForumUserTitleResponse.builder()
+                            .success(true)
+                            .date(new Date(System.currentTimeMillis()))
+                            .message(SUCCESS_FETCHING)
+                            .title(titleDTO)
+                            .build();
                 },
                 () -> {
                     log.warn(NOT_FOUND_BY_ID, toMessageForumUserTitleWord, id);
-                    forumUserTitleById = new ForumUserTitle();
+                    userByIdResponse = ForumUserTitleResponse.builder()
+                            .success(false)
+                            .date(new Date(System.currentTimeMillis()))
+                            .message(FAIL_FETCHING)
+                            .title(null)
+                            .build();
                 }
-        ); return forumUserTitleById;
+        ); return userByIdResponse;
     }
 
     private UniversalResponse updateResponse;
@@ -112,22 +135,21 @@ public class ForumUserTitleService {
         ); return deleteResponse;
     }
 
-    public final List<ForumUserTitle> getAll() {
+    public final List<ForumUserTitleDTO> getAll() {
         log.info(FETCHING_ALL_MESSAGE, toMessageForumUserTitleWord);
-        return titleRepository.findAll();
+        return toForumUserTitle(titleRepository.findAll());
     }
 
-    public final List<ForumUser> getAllByTitleName(final String titleName) {
+    public final List<ForumUserDTO> getAllByTitleName(final String titleName) {
         log.info(FETCHING_BY_STH_MESSAGE, toMessageForumUserTitleWord, "TitleName", titleName);
-        return titleRepository.findAllUsersByTitleName(titleName);
+        return toForumUser(titleRepository.findAllUsersByTitleName(titleName));
     }
 
     public final Map<String, String> getAllTitlesWithIntervals() {
         log.info("Fetching all Titles with Intervals");
         final Map<String, String> data = new HashMap<>();
 
-        titleRepository
-                .findAll()
+        titleRepository.findAll()
                 .forEach(title -> data.put(title.getTitleName(), title.getRangeIntervalPoints()));
         return data;
     }

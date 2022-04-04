@@ -3,6 +3,7 @@ package pl.scf.api;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import pl.scf.api.model.dto.AppUserDetailsDTO;
 import pl.scf.api.model.request.AppUserDetailsUpdateRequest;
 import pl.scf.api.model.response.AppUserDetailsResponse;
 import pl.scf.api.model.response.UniversalResponse;
@@ -40,7 +41,7 @@ public class AppUserDetailsApi {
     }
 
     @GetMapping("/all")
-    public final ResponseEntity<List<AppUserDetails>> getAll() {
+    public final ResponseEntity<List<AppUserDetailsDTO>> getAll() {
         return buildResponseEntity(OK, detailsService.getAll());
     }
 

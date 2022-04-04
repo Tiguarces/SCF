@@ -1,0 +1,101 @@
+#container {
+  width: 100vw;
+  height: 90vh;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.panel {
+  width: 45vw;
+  height: 65vh;
+  box-sizing: border-box;
+}
+
+.panel p {
+  color: white;
+  font-size: 240%;
+  padding-left: 25px;
+}
+
+#login{
+  width: 41vw;
+  border-right: 2px solid white;
+}
+
+.panel form {
+  margin-top: 7%;
+  width: inherit;
+  height: 48vh;
+}
+
+.panel label {
+  display: block;
+  padding-left: 7%;
+  padding-top: 25px;
+}
+
+.panel label:first-child {
+  padding-top: 40px;
+}
+
+.panel label input {
+  width: 22vw;
+  height: 5vh;
+
+  color: white;
+  cursor: pointer;
+  background-color: rgb(97, 94, 94);
+
+  outline: none;
+}
+
+.panel label input:focus {
+  border-color: white;
+}
+
+.panel label input[type="text"],
+.panel label input[type="email"] {
+  padding-left: 8px;
+}
+
+.panel label input[type="text"]::placeholder,
+.panel label input[type="email"]::placeholder,
+.panel label input[type="password"]::placeholder {
+  color: rgb(241, 228, 228);
+}
+
+.panel label input[type="submit"] {
+  width: 10vw;
+  height: 4vh;
+
+  outline: none;
+  margin-left: 34%;
+
+  font-weight: 900;
+  text-shadow: 1px 1px 1px gray;
+
+  border: 1px solid rgb(122, 179, 36);
+  background-color: rgb(122, 179, 36);
+}
+
+.panel label input[type="submit"]:hover {
+  transition-duration: 250ms;
+
+  border: 1px solid rgb(130, 189, 43);
+  background-color: rgb(130, 189, 43);
+}
+
+#register label input[type="submit"] {
+  border: 1px solid rgb(219, 152, 51);
+  background-color: rgb(219, 152, 51);
+  margin-left: 31%;
+}
+
+#register label input[type="submit"]:hover {
+  transition-duration: 250ms;
+
+  border: 1px solid rgb(223, 160, 65);
+  background-color: rgb(223, 160, 65);
+}

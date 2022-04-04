@@ -4,11 +4,11 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
+import pl.scf.api.model.dto.AppUserDTO;
 import pl.scf.api.model.request.RegisterRequest;
 import pl.scf.api.model.request.UpdateUserRequest;
 import pl.scf.api.model.response.ActivateEmailResponse;
 import pl.scf.api.model.response.AppUserResponse;
-import pl.scf.api.model.response.RegisterResponse;
 import pl.scf.api.model.response.UniversalResponse;
 import pl.scf.model.AppUser;
 import pl.scf.model.property.ActivateAccountProperty;
@@ -27,10 +27,10 @@ public class AuthApi {
     private final ActivateAccountProperty activateAccountProperty;
 
     @PostMapping("/register")
-    public final ResponseEntity<RegisterResponse> registerUser(@RequestBody final RegisterRequest request) {
-        final RegisterResponse response = userService.register(request);
+    public final ResponseEntity<UniversalResponse> registerUser(@RequestBody final RegisterRequest request) {
+        final UniversalResponse response = userService.register(request);
         return buildResponseEntity(
-                response.getSuccess() ? CREATED : INTERNAL_SERVER_ERROR,
+                response.getSuccess() ? CREATED : OK,
                 response
         );
     }
@@ -76,7 +76,7 @@ public class AuthApi {
     }
 
     @DeleteMapping("/user/delete/{id}")
-    public final ResponseEntity<UniversalResponse> getUserByUsername(@PathVariable("id") final Long id) {
+    public final ResponseEntity<UniversalResponse> deleteById(@PathVariable("id") final Long id) {
         final UniversalResponse response = userService.delete(id);
         return buildResponseEntity(
                 response.getSuccess() ? OK : INTERNAL_SERVER_ERROR,
@@ -84,8 +84,17 @@ public class AuthApi {
         );
     }
 
-    @GetMapping("/all")
-    public final ResponseEntity<List<AppUser>> getAll() {
+    @DeleteMapping("/user/delete/all")
+    public final ResponseEntity<UniversalResponse> deleteAll() {
+        final UniversalResponse response = userService.deleteAll();
+        return buildResponseEntity(
+                response.getSuccess() ? OK : INTERNAL_SERVER_ERROR,
+                response
+        );
+    }
+
+    @GetMapping("/get/all")
+    public final ResponseEntity<List<AppUserDTO>> getAll() {
         return buildResponseEntity(OK, userService.getAll());
     }
 }

@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import javax.persistence.*;
 import java.util.List;
 
+import static javax.persistence.CascadeType.ALL;
 import static javax.persistence.FetchType.LAZY;
 import static javax.persistence.GenerationType.IDENTITY;
 
@@ -25,6 +26,6 @@ public class TopicCategory {
     @Column(nullable = false)
     private String name;
 
-    @OneToMany(fetch = LAZY, mappedBy = "category")
+    @OneToMany(fetch = LAZY, mappedBy = "category", cascade = ALL)
     private List<TopicSubCategory> subCategory;
 }

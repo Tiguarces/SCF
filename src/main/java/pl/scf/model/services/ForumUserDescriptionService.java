@@ -3,7 +3,9 @@ package pl.scf.model.services;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import pl.scf.api.model.dto.ForumUserDescriptionDTO;
 import pl.scf.api.model.request.ForumUserDescriptionUpdateRequest;
+import pl.scf.api.model.response.ForumUserDescriptionResponse;
 import pl.scf.api.model.response.UniversalResponse;
 import pl.scf.model.ForumUserDescription;
 import pl.scf.model.repositories.IForumUserDescriptionRepository;
@@ -12,6 +14,7 @@ import java.util.Date;
 import java.util.List;
 
 import static pl.scf.api.model.utils.ApiConstants.*;
+import static pl.scf.api.model.utils.DTOMapper.toForumUserDescription;
 
 @Slf4j
 @Service
@@ -19,20 +22,6 @@ import static pl.scf.api.model.utils.ApiConstants.*;
 public class ForumUserDescriptionService {
     private final IForumUserDescriptionRepository descriptionRepository;
     private final String toMessageForumUserDescriptionWord = "ForumUserDescription";
-
-    private ForumUserDescription forumDescriptionById;
-    public final ForumUserDescription getById(final Long id) {
-        descriptionRepository.findById(id).ifPresentOrElse(
-                (foundDescription) -> {
-                    log.info(FETCH_BY_ID, toMessageForumUserDescriptionWord, id);
-                    forumDescriptionById = foundDescription;
-                },
-                () -> {
-                    log.warn(NOT_FOUND_BY_ID, toMessageForumUserDescriptionWord, id);
-                    forumDescriptionById = new ForumUserDescription();
-                }
-        ); return forumDescriptionById;
-    }
 
     private UniversalResponse updateResponse;
     public final UniversalResponse update(final ForumUserDescriptionUpdateRequest request) {
@@ -83,8 +72,37 @@ public class ForumUserDescriptionService {
         ); return deleteResponse;
     }
 
-    public final List<ForumUserDescription> getAll() {
+    private ForumUserDescriptionResponse descriptionByIdResponse;
+    public final ForumUserDescriptionResponse getById(final Long id) {
+        descriptionRepository.findById(id).ifPresentOrElse(
+                (foundDescription) -> {
+                    log.info(FETCH_BY_ID, toMessageForumUserDescriptionWord, id);
+                    final ForumUserDescriptionDTO descriptionDTO = ForumUserDescriptionDTO.builder()
+                            .content(foundDescription.getContent())
+                            .forumUserId(foundDescription.getUser().getId())
+                            .build();
+
+                    descriptionByIdResponse = ForumUserDescriptionResponse.builder()
+                            .success(true)
+                            .date(new Date(System.currentTimeMillis()))
+                            .message(SUCCESS_FETCHING)
+                            .forumUserDescription(descriptionDTO)
+                            .build();
+                },
+                () -> {
+                    log.warn(NOT_FOUND_BY_ID, toMessageForumUserDescriptionWord, id);
+                    descriptionByIdResponse = ForumUserDescriptionResponse.builder()
+                            .success(false)
+                            .date(new Date(System.currentTimeMillis()))
+                            .message(FAIL_FETCHING)
+                            .forumUserDescription(null)
+                            .build();
+                }
+        ); return descriptionByIdResponse;
+    }
+
+    public final List<ForumUserDescriptionDTO> getAll() {
         log.info(FETCHING_ALL_MESSAGE, toMessageForumUserDescriptionWord);
-        return descriptionRepository.findAll();
+        return toForumUserDescription(descriptionRepository.findAll());
     }
 }

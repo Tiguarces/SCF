@@ -73,6 +73,13 @@ public class DatabaseInitializer {
                             .forumUser(new ForumUser())
                             .build();
 
+                    final VerificationToken verificationToken = VerificationToken.builder()
+                            .user(admin)
+                            .token("ADMINISTRATOR_TOKEN_NOT_REQUIRED")
+                            .activated(1)
+                            .build();
+
+                    admin.setToken(verificationToken);
                     admin.setUser_details(adminDetails);
 
                     userRepository.save(admin);

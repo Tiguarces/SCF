@@ -11,4 +11,6 @@ public interface IAnswerRepository extends JpaRepository<Answer, Long> {
     List<Answer> findAllByTopicId(Long topicId);
 
     List<Answer> findAllByUserId(Long userId);
+
+    List<Answer> findTopByOrderByIdDesc();
 }

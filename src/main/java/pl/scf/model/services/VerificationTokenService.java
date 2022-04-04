@@ -3,8 +3,10 @@ package pl.scf.model.services;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import pl.scf.api.model.dto.VerificationTokenDTO;
 import pl.scf.api.model.request.VerificationTokenSaveRequest;
 import pl.scf.api.model.response.UniversalResponse;
+import pl.scf.api.model.response.VerificationTokenResponse;
 import pl.scf.model.VerificationToken;
 import pl.scf.model.repositories.IVerificationTokenRepository;
 
@@ -12,6 +14,7 @@ import java.util.Date;
 import java.util.List;
 
 import static pl.scf.api.model.utils.ApiConstants.*;
+import static pl.scf.api.model.utils.DTOMapper.toVerificationTokens;
 
 @Slf4j
 @Service
@@ -70,35 +73,67 @@ public class VerificationTokenService {
         ); return deleteResponse;
     }
 
-    private VerificationToken tokenById;
-    public final VerificationToken getById(final Long id) {
+    private VerificationTokenResponse tokenByIdResponse;
+    public final VerificationTokenResponse getById(final Long id) {
         tokenRepository.findById(id).ifPresentOrElse(
                 (foundToken) -> {
                     log.info(FETCH_BY_ID, toMessageTokenWord, id);
-                    tokenById = foundToken;
+                    final VerificationTokenDTO tokenDTO = VerificationTokenDTO.builder()
+                            .token(foundToken.getToken())
+                            .activated(foundToken.getActivated())
+                            .userId(foundToken.getUser().getId())
+                            .build();
+
+                    tokenByIdResponse = VerificationTokenResponse.builder()
+                            .success(true)
+                            .date(new Date(System.currentTimeMillis()))
+                            .message(SUCCESS_FETCHING)
+                            .verificationToken(tokenDTO)
+                            .build();
                 },
                 () -> {
                     log.warn(NOT_FOUND_BY_ID, toMessageTokenWord, id);
-                    tokenById = new VerificationToken();
+                    tokenByIdResponse = VerificationTokenResponse.builder()
+                            .success(false)
+                            .date(new Date(System.currentTimeMillis()))
+                            .message(FAIL_FETCHING)
+                            .verificationToken(null)
+                            .build();
                 }
-        ); return tokenById;
+        ); return tokenByIdResponse;
     }
 
-    private VerificationToken tokenByName;
-    public final VerificationToken getByTokenName(final String desiredToken) {
+    private VerificationTokenResponse tokenByNameResponse;
+    public final VerificationTokenResponse getByTokenName(final String desiredToken) {
         tokenRepository.findByToken(desiredToken).ifPresentOrElse(
                 (foundToken) -> {
-                    log.info(FETCH_BY_ID, tokenByName, foundToken.getId());
-                    tokenByName = foundToken;
+                    log.info(FETCH_BY_ID, toMessageTokenWord, foundToken.getId());
+                    final VerificationTokenDTO tokenDTO = VerificationTokenDTO.builder()
+                            .token(foundToken.getToken())
+                            .userId(foundToken.getUser().getId())
+                            .activated(foundToken.getActivated())
+                            .build();
+
+                    tokenByNameResponse = VerificationTokenResponse.builder()
+                            .success(true)
+                            .date(new Date(System.currentTimeMillis()))
+                            .message(SUCCESS_FETCHING)
+                            .verificationToken(tokenDTO)
+                            .build();
                 }, () -> {
                     log.warn(NOT_FOUND_BY_STH, toMessageTokenWord, "TokenName", desiredToken);
-                    tokenById = new VerificationToken();
+                    tokenByNameResponse = VerificationTokenResponse.builder()
+                            .success(false)
+                            .date(new Date(System.currentTimeMillis()))
+                            .message(FAIL_FETCHING)
+                            .verificationToken(null)
+                            .build();
                 }
-        ); return  tokenByName;
+        ); return tokenByNameResponse;
     }
 
-    public final List<VerificationToken> getAll() {
+    public final List<VerificationTokenDTO> getAll() {
         log.info(FETCHING_ALL_MESSAGE, "VerificationToken");
-        return tokenRepository.findAll();
+        return toVerificationTokens(tokenRepository.findAll());
     }
 }
