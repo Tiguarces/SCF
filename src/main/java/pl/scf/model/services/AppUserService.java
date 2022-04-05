@@ -1,20 +1,33 @@
 package pl.scf.model.services;
 
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Service;
 import pl.scf.api.model.dto.AppUserDTO;
+import pl.scf.api.model.request.LoginRequest;
 import pl.scf.api.model.request.RegisterRequest;
 import pl.scf.api.model.request.UpdateUserRequest;
 import pl.scf.api.model.response.ActivateEmailResponse;
 import pl.scf.api.model.response.AppUserResponse;
+import pl.scf.api.model.response.LoginResponse;
 import pl.scf.api.model.response.UniversalResponse;
 import pl.scf.model.*;
 import pl.scf.model.mail.MailNotification;
 import pl.scf.model.mail.MailService;
 import pl.scf.model.property.EmailProperty;
+import pl.scf.model.property.JWTProperty;
 import pl.scf.model.repositories.*;
 
 import java.util.Date;
@@ -37,11 +50,73 @@ public class AppUserService {
     private final IAppUserDetailsRepository detailsRepository;
     private final IForumUserTitleRepository titleRepository;
     private final IVerificationTokenRepository tokenRepository;
+    private final AuthenticationManager authenticationManager;
     private final PasswordEncoder passwordEncoder;
     private final MailService mailService;
     private final JavaMailSender mailSender;
     private final EmailProperty emailProperty;
     private final String toMessageAppUserWord = "AppUser";
+    private final JWTProperty jwtProperty;
+
+    public LoginResponse login(LoginRequest request) {
+        try {
+            final UsernamePasswordAuthenticationToken authenticationToken =
+                    new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword());
+            final Authentication authentication = authenticationManager.authenticate(authenticationToken);
+
+            SecurityContextHolder
+                    .getContext()
+                    .setAuthentication(authentication);
+
+            final User user = (User) authentication.getPrincipal();
+            final Algorithm algorithm = Algorithm.HMAC512(jwtProperty.getSecret_password().getBytes(UTF_8));
+            final List<String> roles = user.getAuthorities()
+                    .stream()
+                    .map(GrantedAuthority::getAuthority).toList();
+
+            String accessToken = JWT.create()
+                    .withSubject(user.getUsername())
+                    .withExpiresAt(new Date(System.currentTimeMillis() + jwtProperty.getExpired_time()))
+                    .withIssuer(jwtProperty.getIssuer())
+                    .withClaim("roles", roles)
+                    .sign(algorithm);
+
+            String refreshToken = JWT.create()
+                    .withSubject(user.getUsername())
+                    .withExpiresAt(new Date(System.currentTimeMillis() + jwtProperty.getExpired_time() * 2))
+                    .withIssuer(jwtProperty.getIssuer())
+                    .sign(algorithm);
+
+            log.info("Success authenticate user");
+            return LoginResponse.builder()
+                    .success(true)
+                    .date(new Date(System.currentTimeMillis()))
+                    .message("Success logging user")
+                    .accessToken(accessToken)
+                    .refreshToken(refreshToken)
+                    .username(user.getUsername())
+                    .build();
+
+        } catch (final AuthenticationException exception) {
+            log.warn("Fail authenticated user");
+            return LoginResponse.builder()
+                    .success(false)
+                    .date(new Date(System.currentTimeMillis()))
+                    .message("Failure logging user")
+                    .accessToken("")
+                    .refreshToken("")
+                    .build();
+        }
+    }
+
+    public final UniversalResponse logoutUser() {
+        SecurityContextHolder.clearContext();
+        return UniversalResponse.builder()
+                .success(true)
+                .date(new Date(System.currentTimeMillis()))
+                .message("Success logout user")
+                .build();
+    }
 
     public final UniversalResponse register(final RegisterRequest request) {
         if (userRepository.findByUsername(request.getUsername()).isPresent()) {

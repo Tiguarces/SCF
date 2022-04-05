@@ -5,12 +5,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import pl.scf.api.model.dto.AppUserDTO;
+import pl.scf.api.model.request.LoginRequest;
 import pl.scf.api.model.request.RegisterRequest;
 import pl.scf.api.model.request.UpdateUserRequest;
 import pl.scf.api.model.response.ActivateEmailResponse;
 import pl.scf.api.model.response.AppUserResponse;
+import pl.scf.api.model.response.LoginResponse;
 import pl.scf.api.model.response.UniversalResponse;
-import pl.scf.model.AppUser;
 import pl.scf.model.property.ActivateAccountProperty;
 import pl.scf.model.services.AppUserService;
 
@@ -33,6 +34,16 @@ public class AuthApi {
                 response.getSuccess() ? CREATED : OK,
                 response
         );
+    }
+
+    @PostMapping("/login")
+    public final ResponseEntity<LoginResponse> loginUser(@RequestBody final LoginRequest request) {
+        return buildResponseEntity(OK, userService.login(request));
+    }
+
+    @GetMapping("/logout")
+    public final ResponseEntity<UniversalResponse> logoutUser() {
+        return buildResponseEntity(OK, userService.logoutUser());
     }
 
     @GetMapping("/email/sendAgain/{userId}")

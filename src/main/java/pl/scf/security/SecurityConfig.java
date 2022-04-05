@@ -2,17 +2,14 @@ package pl.scf.security;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.mapping.Collection;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -21,7 +18,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import pl.scf.model.AppUser;
 import pl.scf.model.property.JWTProperty;
 import pl.scf.model.repositories.IAppUserRepository;
-import pl.scf.security.filter.SCFAuthenticationFilter;
 import pl.scf.security.filter.SCFAuthorizationFilter;
 
 import java.util.List;
@@ -36,11 +32,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private IAppUserRepository userRepository;
     private JWTProperty jwtProperty;
 
-
     // TODO: zrobić update requestów
     private final String[] allowedRoutes = new String[] {
-            "/login",
-            "/logout",
+            "/auth/login",
+            "/auth/logout",
 
             "/auth/register",
             "/auth/activate/**",
@@ -101,7 +96,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.sessionManagement()
                 .sessionCreationPolicy(STATELESS);
 
-        http.addFilter(new SCFAuthenticationFilter(authenticationManager(), jwtProperty.getSecret_password(), jwtProperty.getExpired_time(), jwtProperty.getIssuer()));
         http.addFilterBefore(new SCFAuthorizationFilter(jwtProperty.getSecret_password()), UsernamePasswordAuthenticationFilter.class);
 
         http.authorizeRequests()
