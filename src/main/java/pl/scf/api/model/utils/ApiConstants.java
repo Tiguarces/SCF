@@ -11,6 +11,7 @@ public final class ApiConstants {
     public final static String EXCEPTION_MESSAGE = "Error while {} {} | Message: {}";
     public static final String NOT_FOUND_BY_ID = "{} with id: {} not found in the database";
     public static final String NOT_FOUND_BY_STH = "{} with {}: {} not found in the database";
+    public static final String  NOT_FOUND_MESSAGE = "%s with %s: %s not found in the database";
 
     public static final String SUCCESS_SAVING = "Successful saving";
     public static final String FAIL_SAVING = "Fail while saving";
@@ -35,10 +36,25 @@ public final class ApiConstants {
     public static final String USER_TITLES_EXISTS = "All User Roles exists";
 
     public static final String NOT_VALID_ELEMENT_MESSAGE = "%s is null or empty";
-    public static final String NOT_FOUND_MESSAGE = "Not found %s with %s: %s";
     public static final String ID_ERROR_MESSAGE = "Id must be greater than 0";
     public static final String ELEMENT_EXISTS = "%s exists in the database";
     public static final String SUCCESS_FETCHING = "Successfully fetching";
     public static final String FAIL_FETCHING = "Failure fetching";
     public static final String DELETE_ALL = "Delete all {}";
+
+    public static final String LOGIN_SUCCESS = "Successfully logging user";
+    public static final String LOGIN_FAIL = "Failure logging user";
+    public static final String LOGOUT_USER = "Successfully logout user";
+
+    public static final String USER_EXISTS = "User already exists";
+    public static final String EMAIL_IS_USED = "Email has already been used";
+    public static final String NICKNAME_IS_USED = "Nickname is already used";
+
+    public static final String AUTHENTICATE_USER_SUCCESS = "Successfully authenticated user";
+    public static final String AUTHENTICATE_USER_FAIL = "Failure authenticated user";
+
+    public static final String REFRESH_SUCCESS = "Successfully refresh JWT token";
+    public static final String REFRESH_FAIL = "Failure refresh JWT token";
+    public static final String TOKEN_EXPIRED = "JWT token expired";
+    public static final String TOKEN_NOT_VALID = "JWT token is not valid";
 }

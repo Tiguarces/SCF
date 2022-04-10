@@ -4,6 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import pl.scf.model.TopicSubCategory;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -11,4 +12,6 @@ public interface ITopicSubCategoryRepository extends JpaRepository<TopicSubCateg
     Optional<TopicSubCategory> findByName(String subCategoryName);
 
     boolean existsByName(String subCategoryName);
+
+    List<TopicSubCategory> findAllByCategoryName(String categoryName);
 }

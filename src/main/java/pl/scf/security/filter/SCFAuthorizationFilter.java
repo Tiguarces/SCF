@@ -37,7 +37,7 @@ public class SCFAuthorizationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(final HttpServletRequest request, final HttpServletResponse response, final FilterChain filterChain) throws ServletException, IOException {
         final String servletPath = request.getServletPath();
-        if(servletPath.equals("/login") || servletPath.equals("/logout")) {
+        if(servletPath.equals("/auth/login") || servletPath.equals("/auth/logout") || servletPath.equals("/auth/refresh")) {
             filterChain.doFilter(request, response);
         } else {
             final String authorizationToken = request.getHeader(AUTHORIZATION);
@@ -59,6 +59,7 @@ public class SCFAuthorizationFilter extends OncePerRequestFilter {
                     SecurityContextHolder.getContext().setAuthentication(authenticationToken);
                     filterChain.doFilter(request, response);
                 } catch (final Exception exception) {
+                    exception.printStackTrace();
                     log.error("Error while parsing token | {}", exception.getMessage());
 
                     final Map<String, String> errorResponseContent = new HashMap<>();

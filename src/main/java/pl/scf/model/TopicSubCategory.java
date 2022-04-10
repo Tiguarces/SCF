@@ -1,5 +1,6 @@
 package pl.scf.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -8,7 +9,7 @@ import lombok.NoArgsConstructor;
 import javax.persistence.*;
 import java.util.List;
 
-import static javax.persistence.CascadeType.ALL;
+import static javax.persistence.CascadeType.*;
 import static javax.persistence.FetchType.LAZY;
 import static javax.persistence.GenerationType.IDENTITY;
 
@@ -26,7 +27,8 @@ public class TopicSubCategory {
     @Column(nullable = false)
     private String name;
 
-    @ManyToOne(fetch = LAZY, cascade = ALL)
+    @JsonBackReference
+    @ManyToOne(fetch = LAZY, cascade = { MERGE, REMOVE, DETACH })
     private TopicCategory category;
 
     @OneToMany(fetch = LAZY, mappedBy = "subCategory")

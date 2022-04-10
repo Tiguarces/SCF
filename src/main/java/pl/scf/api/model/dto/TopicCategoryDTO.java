@@ -7,5 +7,8 @@ import lombok.Data;
 @Builder
 public class TopicCategoryDTO {
     private String categoryName;
+    private String imageURL;
     private String[] subCategoryNames;
+    private Integer numberOfAnswers;
+    private Integer numberOfTopics;
 }

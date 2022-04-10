@@ -5,7 +5,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pl.scf.api.model.dto.TopicCategoryDTO;
 import pl.scf.api.model.request.TopicCategorySaveRequest;
+import pl.scf.api.model.request.TopicCategoryUpdateRequest;
 import pl.scf.api.model.request.TopicSubCategoryUpdateRequest;
+import pl.scf.api.model.response.GetAllTopicCategoryResponse;
 import pl.scf.api.model.response.TopicCategoryResponse;
 import pl.scf.api.model.response.UniversalResponse;
 import pl.scf.model.services.TopicCategoryService;
@@ -31,7 +33,7 @@ public class TopicCategoryApi {
     }
 
     @PutMapping("/update")
-    public final ResponseEntity<UniversalResponse> update(@RequestBody TopicSubCategoryUpdateRequest request) {
+    public final ResponseEntity<UniversalResponse> update(@RequestBody TopicCategoryUpdateRequest request) {
         final UniversalResponse response = categoryService.update(request);
         return buildResponseEntity(
                 response.getSuccess() ? OK : INTERNAL_SERVER_ERROR,
@@ -49,7 +51,7 @@ public class TopicCategoryApi {
     }
 
     @GetMapping("/all")
-    public final ResponseEntity<List<TopicCategoryDTO>> getAll() {
+    public final ResponseEntity<GetAllTopicCategoryResponse> getAll() {
         return buildResponseEntity(OK, categoryService.getAll());
     }
 

@@ -1,7 +1,9 @@
 package pl.scf.model.services;
 
 import com.auth0.jwt.JWT;
+import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.interfaces.DecodedJWT;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -9,20 +11,16 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Service;
 import pl.scf.api.model.dto.AppUserDTO;
 import pl.scf.api.model.request.LoginRequest;
+import pl.scf.api.model.request.RefreshTokenRequest;
 import pl.scf.api.model.request.RegisterRequest;
 import pl.scf.api.model.request.UpdateUserRequest;
-import pl.scf.api.model.response.ActivateEmailResponse;
-import pl.scf.api.model.response.AppUserResponse;
-import pl.scf.api.model.response.LoginResponse;
-import pl.scf.api.model.response.UniversalResponse;
+import pl.scf.api.model.response.*;
 import pl.scf.model.*;
 import pl.scf.model.mail.MailNotification;
 import pl.scf.model.mail.MailService;
@@ -38,6 +36,7 @@ import java.util.UUID;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static pl.scf.api.model.utils.ApiConstants.*;
 import static pl.scf.api.model.utils.DTOMapper.toAppUser;
+import static pl.scf.api.model.utils.DTOMapper.toUserRoles;
 import static pl.scf.api.model.utils.ResponseUtil.messageByIdError;
 import static pl.scf.api.model.utils.ResponseUtil.messageBySthError;
 
@@ -58,7 +57,7 @@ public class AppUserService {
     private final String toMessageAppUserWord = "AppUser";
     private final JWTProperty jwtProperty;
 
-    public LoginResponse login(LoginRequest request) {
+    public LoginResponse login(final LoginRequest request) {
         try {
             final UsernamePasswordAuthenticationToken authenticationToken =
                     new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword());
@@ -70,9 +69,7 @@ public class AppUserService {
 
             final User user = (User) authentication.getPrincipal();
             final Algorithm algorithm = Algorithm.HMAC512(jwtProperty.getSecret_password().getBytes(UTF_8));
-            final List<String> roles = user.getAuthorities()
-                    .stream()
-                    .map(GrantedAuthority::getAuthority).toList();
+            final List<String> roles = toUserRoles(user.getAuthorities());
 
             String accessToken = JWT.create()
                     .withSubject(user.getUsername())
@@ -87,26 +84,88 @@ public class AppUserService {
                     .withIssuer(jwtProperty.getIssuer())
                     .sign(algorithm);
 
-            log.info("Success authenticate user");
+            log.info(AUTHENTICATE_USER_SUCCESS);
             return LoginResponse.builder()
                     .success(true)
                     .date(new Date(System.currentTimeMillis()))
-                    .message("Success logging user")
+                    .message(LOGIN_SUCCESS)
                     .accessToken(accessToken)
                     .refreshToken(refreshToken)
                     .username(user.getUsername())
                     .build();
 
         } catch (final AuthenticationException exception) {
-            log.warn("Fail authenticated user");
+            log.warn(AUTHENTICATE_USER_FAIL);
             return LoginResponse.builder()
                     .success(false)
                     .date(new Date(System.currentTimeMillis()))
-                    .message("Failure logging user")
+                    .message(LOGIN_FAIL)
                     .accessToken("")
                     .refreshToken("")
                     .build();
         }
+    }
+
+    private RefreshTokenResponse refreshTokenResponse;
+    public final RefreshTokenResponse refreshToken(final RefreshTokenRequest request) {
+        if (request != null) {
+            final Algorithm algorithm = Algorithm.HMAC512(jwtProperty.getSecret_password().getBytes(UTF_8));
+            final DecodedJWT decodedJWT = JWT.decode(request.getRefreshToken());
+
+            if(decodedJWT.getExpiresAt().after(new Date())) {
+                final String userUsername = decodedJWT.getSubject();
+                userRepository.findByUsername(userUsername).ifPresentOrElse(
+                        (foundUser) -> {
+                            final String role = "ROLE_" + foundUser.getRole().getName();
+
+                            String accessToken = JWT.create()
+                                    .withSubject(foundUser.getUsername())
+                                    .withExpiresAt(new Date(System.currentTimeMillis() + jwtProperty.getExpired_time()))
+                                    .withIssuer(jwtProperty.getIssuer())
+                                    .withClaim("roles", List.of(role))
+                                    .sign(algorithm);
+
+                            String refreshToken = JWT.create()
+                                    .withSubject(foundUser.getUsername())
+                                    .withExpiresAt(new Date(System.currentTimeMillis() + jwtProperty.getExpired_time() * 2))
+                                    .withIssuer(jwtProperty.getIssuer())
+                                    .sign(algorithm);
+
+                            log.info(AUTHENTICATE_USER_SUCCESS);
+                            refreshTokenResponse = RefreshTokenResponse.builder()
+                                    .success(true)
+                                    .date(new Date(System.currentTimeMillis()))
+                                    .message(REFRESH_SUCCESS)
+                                    .accessToken(accessToken)
+                                    .refreshToken(refreshToken)
+                                    .username(foundUser.getUsername())
+                                    .build();
+                        },
+                        () -> {
+                            log.warn(NOT_FOUND_BY_STH, "User", "username", userUsername);
+                            refreshTokenResponse = RefreshTokenResponse.builder()
+                                    .success(false)
+                                    .date(new Date(System.currentTimeMillis()))
+                                    .message(REFRESH_FAIL)
+                                    .build();
+                        }
+                );
+            } else {
+                log.warn(TOKEN_EXPIRED);
+                refreshTokenResponse = RefreshTokenResponse.builder()
+                        .success(false)
+                        .date(new Date(System.currentTimeMillis()))
+                        .message(TOKEN_EXPIRED)
+                        .build();
+            }
+        } else {
+            log.warn(TOKEN_NOT_VALID);
+            refreshTokenResponse = RefreshTokenResponse.builder()
+                    .success(false)
+                    .date(new Date(System.currentTimeMillis()))
+                    .message(TOKEN_NOT_VALID)
+                    .build();
+        } return refreshTokenResponse;
     }
 
     public final UniversalResponse logoutUser() {
@@ -114,7 +173,7 @@ public class AppUserService {
         return UniversalResponse.builder()
                 .success(true)
                 .date(new Date(System.currentTimeMillis()))
-                .message("Success logout user")
+                .message(LOGOUT_USER)
                 .build();
     }
 
@@ -124,7 +183,7 @@ public class AppUserService {
             return UniversalResponse.builder()
                     .success(false)
                     .date(new Date(System.currentTimeMillis()))
-                    .message("Użytkownik już istnieje")
+                    .message(USER_EXISTS)
                     .build();
         }
 
@@ -133,7 +192,7 @@ public class AppUserService {
             return UniversalResponse.builder()
                     .success(false)
                     .date(new Date(System.currentTimeMillis()))
-                    .message("Email został już wykorzystany")
+                    .message(EMAIL_IS_USED)
                     .build();
         }
 
@@ -142,7 +201,7 @@ public class AppUserService {
             return UniversalResponse.builder()
                     .success(false)
                     .date(new Date(System.currentTimeMillis()))
-                    .message("Nick zajęty")
+                    .message(NICKNAME_IS_USED)
                     .build();
         }
 

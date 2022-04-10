@@ -6,12 +6,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import pl.scf.api.model.dto.AppUserDTO;
 import pl.scf.api.model.request.LoginRequest;
+import pl.scf.api.model.request.RefreshTokenRequest;
 import pl.scf.api.model.request.RegisterRequest;
 import pl.scf.api.model.request.UpdateUserRequest;
-import pl.scf.api.model.response.ActivateEmailResponse;
-import pl.scf.api.model.response.AppUserResponse;
-import pl.scf.api.model.response.LoginResponse;
-import pl.scf.api.model.response.UniversalResponse;
+import pl.scf.api.model.response.*;
 import pl.scf.model.property.ActivateAccountProperty;
 import pl.scf.model.services.AppUserService;
 
@@ -39,6 +37,11 @@ public class AuthApi {
     @PostMapping("/login")
     public final ResponseEntity<LoginResponse> loginUser(@RequestBody final LoginRequest request) {
         return buildResponseEntity(OK, userService.login(request));
+    }
+
+    @PostMapping("/refresh")
+    public final ResponseEntity<RefreshTokenResponse> refreshToken(@RequestBody final RefreshTokenRequest request) {
+        return buildResponseEntity(OK, userService.refreshToken(request));
     }
 
     @GetMapping("/logout")

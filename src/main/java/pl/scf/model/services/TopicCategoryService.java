@@ -5,12 +5,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import pl.scf.api.model.dto.TopicCategoryDTO;
 import pl.scf.api.model.request.TopicCategorySaveRequest;
-import pl.scf.api.model.request.TopicSubCategoryUpdateRequest;
+import pl.scf.api.model.request.TopicCategoryUpdateRequest;
+import pl.scf.api.model.response.GetAllTopicCategoryResponse;
 import pl.scf.api.model.response.TopicCategoryResponse;
 import pl.scf.api.model.response.UniversalResponse;
+import pl.scf.model.Topic;
 import pl.scf.model.TopicCategory;
 import pl.scf.model.TopicSubCategory;
 import pl.scf.model.repositories.ITopicCategoryRepository;
+import pl.scf.model.repositories.ITopicRepository;
 import pl.scf.model.repositories.ITopicSubCategoryRepository;
 
 import java.util.Date;
@@ -24,10 +27,12 @@ import static pl.scf.api.model.utils.ResponseUtil.messageByIdError;
 @Service
 @RequiredArgsConstructor
 public class TopicCategoryService {
+    private final ITopicRepository topicRepository;
     private final ITopicCategoryRepository categoryRepository;
     private final ITopicSubCategoryRepository subCategoryRepository;
     private final String toMessageTopicCategoryWord = "TopicCategory";
 
+    /// TODO: add subCategory as array
     private UniversalResponse saveResponse;
     public final UniversalResponse save(final TopicCategorySaveRequest request) {
         if (request.getName() == null) {
@@ -59,11 +64,13 @@ public class TopicCategoryService {
                     () -> {
                         final TopicCategory topicCategory = TopicCategory.builder()
                                 .name(request.getName())
+                                .imageURL(request.getImageURL())
                                 .build();
 
                         final TopicSubCategory subCategory = TopicSubCategory.builder()
                                 .name(request.getSubCategoryName())
-                                .category(topicCategory).build();
+                                .category(topicCategory)
+                                .build();
 
                         log.info(SAVING, "TopicSubCategory");
                         subCategoryRepository.save(subCategory);
@@ -82,7 +89,7 @@ public class TopicCategoryService {
     }
 
     private UniversalResponse updateResponse;
-    public final UniversalResponse update(final TopicSubCategoryUpdateRequest request) {
+    public final UniversalResponse update(final TopicCategoryUpdateRequest request) {
         if (request.getName() == null) {
             log.warn(NULLABLE_MESSAGE, "New category name");
             updateResponse = UniversalResponse.builder()
@@ -91,10 +98,11 @@ public class TopicCategoryService {
                     .message(String.format(NOT_VALID_ELEMENT_MESSAGE, "New category name"))
                     .build();
         } else {
-            categoryRepository.findById(request.getTopicCategoryId()).ifPresentOrElse(
+            categoryRepository.findById(request.getTopicId()).ifPresentOrElse(
                     (foundCategory) -> {
-                        log.info(UPDATE_MESSAGE, toMessageTopicCategoryWord, request.getTopicCategoryId());
+                        log.info(UPDATE_MESSAGE, toMessageTopicCategoryWord, request.getTopicId());
                         foundCategory.setName(request.getName());
+                        foundCategory.setImageURL(request.getImageURL());
 
                         categoryRepository.save(foundCategory);
                         updateResponse = UniversalResponse.builder()
@@ -104,11 +112,11 @@ public class TopicCategoryService {
                                 .build();
                     },
                     () -> {
-                        log.warn(NOT_FOUND_BY_ID, toMessageTopicCategoryWord, request.getTopicCategoryId());
+                        log.warn(NOT_FOUND_BY_ID, toMessageTopicCategoryWord, request.getTopicId());
                         updateResponse = UniversalResponse.builder()
                                 .success(false)
                                 .date(new Date(System.currentTimeMillis()))
-                                .message(messageByIdError(request.getTopicCategoryId(), toMessageTopicCategoryWord))
+                                .message(messageByIdError(request.getTopicId(), toMessageTopicCategoryWord))
                                 .build();
                     }
             );
@@ -125,7 +133,7 @@ public class TopicCategoryService {
                     deleteResponse = UniversalResponse.builder()
                             .success(true)
                             .date(new Date(System.currentTimeMillis()))
-                            .message(SUCCESS_UPDATE)
+                            .message(SUCCESS_DELETE)
                             .build();
                 },
                 () -> {
@@ -145,6 +153,7 @@ public class TopicCategoryService {
                 (foundCategory) -> {
                     log.info(FETCH_BY_ID, toMessageTopicCategoryWord, id);
                     final TopicCategoryDTO categoryDTO = TopicCategoryDTO.builder()
+                            .imageURL(foundCategory.getImageURL())
                             .categoryName(foundCategory.getName())
                             .subCategoryNames(toSubCategoryNamesToArray(foundCategory.getSubCategory()))
                             .build();
@@ -152,7 +161,7 @@ public class TopicCategoryService {
                     getByIdTopic = TopicCategoryResponse.builder()
                             .success(true)
                             .date(new Date(System.currentTimeMillis()))
-                            .message("Found category")
+                            .message(SUCCESS_FETCHING)
                             .category(categoryDTO)
                             .build();
                 },
@@ -168,13 +177,62 @@ public class TopicCategoryService {
         ); return getByIdTopic;
     }
 
-    public final List<TopicCategoryDTO> getAll() {
+    public final GetAllTopicCategoryResponse getAll() {
         log.info(FETCHING_ALL_MESSAGE, toMessageTopicCategoryWord);
-        return toTopicCategory(categoryRepository.findAll());
+        final var categories = toTopicCategory(categoryRepository.findAll());
+
+        categories.forEach(category -> {
+            category.setNumberOfTopics(getNumberOfTopics(category));
+            category.setNumberOfAnswers(getNumberOfAnswers(category));
+        });
+
+        return GetAllTopicCategoryResponse.builder()
+                .success(true)
+                .date(new Date(System.currentTimeMillis()))
+                .message(SUCCESS_FETCHING)
+                .categories(categories)
+                .build();
     }
 
     public final List<String> getAllNames() {
         log.info(FETCHING_ALL_MESSAGE, toMessageTopicCategoryWord + " names");
         return toTopicCategoryAllNames(categoryRepository.findAll());
+    }
+
+    /////////////////////////////////////////////////
+
+    private Integer getNumberOfTopics(final TopicCategoryDTO category) {
+        final var subCategoriesByCatName =
+                subCategoryRepository
+                        .findAllByCategoryName(category.getCategoryName())
+                        .parallelStream()
+                        .map(TopicSubCategory::getName)
+                        .toList();
+
+        final var allTopicsBySubCatNames =
+                topicRepository
+                        .findAllBySubCategoryNameIn(subCategoriesByCatName)
+                        .parallelStream()
+                        .count();
+
+        return (int) allTopicsBySubCatNames;
+    }
+
+    private Integer getNumberOfAnswers(final TopicCategoryDTO category) {
+        final var subCategoriesByCatName =
+                subCategoryRepository
+                        .findAllByCategoryName(category.getCategoryName())
+                        .parallelStream()
+                        .map(TopicSubCategory::getName)
+                        .toList();
+
+        final var allAnswersByTopicNames =
+                topicRepository
+                        .findAllBySubCategoryNameIn(subCategoriesByCatName)
+                        .parallelStream()
+                        .map(Topic::getAnswers)
+                        .count();
+
+        return (int) allAnswersByTopicNames;
     }
 }

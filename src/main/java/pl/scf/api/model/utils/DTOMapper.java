@@ -1,14 +1,16 @@
 package pl.scf.api.model.utils;
 
+import org.springframework.security.core.GrantedAuthority;
 import pl.scf.api.model.dto.*;
 import pl.scf.model.*;
 
+import java.util.Collection;
 import java.util.List;
 
 public final class DTOMapper {
 
     public static List<TopicCategoryDTO> toTopicCategory(final List<TopicCategory> rawTopicCategories) {
-        return rawTopicCategories.parallelStream()
+        return rawTopicCategories.stream()
                 .map(DTOMapper::toTopicDTO)
                 .toList();
     }
@@ -21,13 +23,15 @@ public final class DTOMapper {
                 .toArray(String[]::new);
 
         return TopicCategoryDTO.builder()
+                .imageURL(topicCategory.getImageURL())
                 .categoryName(topicCategory.getName())
                 .subCategoryNames(subCategories)
                 .build();
     }
 
     public static List<String> toTopicCategoryAllNames(final List<TopicCategory> rawTopicCategories) {
-        return rawTopicCategories.parallelStream()
+        return rawTopicCategories
+                .stream()
                 .map(TopicCategory::getName)
                 .toList();
     }
@@ -35,7 +39,7 @@ public final class DTOMapper {
     /////////////////////////////////////////////////
 
     public static List<AnswerDTO> toAnswer(final List<Answer> rawAnswers) {
-        return rawAnswers.parallelStream()
+        return rawAnswers.stream()
                 .map(DTOMapper::toAnswerDTO)
                 .toList();
     }
@@ -53,7 +57,7 @@ public final class DTOMapper {
 
     public static List<AppUserDTO> toAppUser(final List<AppUser> rawUsers) {
         return rawUsers
-                .parallelStream()
+                .stream()
                 .map(DTOMapper::toAppUserDTO)
                 .toList();
     }
@@ -71,7 +75,7 @@ public final class DTOMapper {
 
     public static List<AppUserDetailsDTO> toDetails(final List<AppUserDetails> rawDetails) {
         return rawDetails
-                .parallelStream()
+                .stream()
                 .map(DTOMapper::toDetailsDTO)
                 .toList();
     }
@@ -90,7 +94,7 @@ public final class DTOMapper {
 
     public static List<ForumUserDescriptionDTO> toForumUserDescription(final List<ForumUserDescription> rawDescriptions) {
         return rawDescriptions
-                .parallelStream()
+                .stream()
                 .map(DTOMapper::toDescriptionDTO)
                 .toList();
     }
@@ -106,7 +110,7 @@ public final class DTOMapper {
 
     public static List<ForumUserImagesDTO> toForumUserImages(final List<ForumUserImages> rawImages) {
         return rawImages
-                .parallelStream()
+                .stream()
                 .map(DTOMapper::toImagesDTO)
                 .toList();
     }
@@ -123,7 +127,7 @@ public final class DTOMapper {
 
     public static List<ForumUserDTO> toForumUser(final List<ForumUser> rawForumUsers) {
         return rawForumUsers
-                .parallelStream()
+                .stream()
                 .map(DTOMapper::toForumUserDTO)
                 .toList();
     }
@@ -143,7 +147,7 @@ public final class DTOMapper {
 
     public static List<ForumUserTitleDTO> toForumUserTitle(final List<ForumUserTitle> rawTitles) {
         return rawTitles
-                .parallelStream()
+                .stream()
                 .map(DTOMapper::toTitlesDTO)
                 .toList();
     }
@@ -159,7 +163,7 @@ public final class DTOMapper {
 
     public static List<TopicSubCategoryDTO> toSubCategory(final List<TopicSubCategory> rawSubCategories) {
         return rawSubCategories
-                .parallelStream()
+                .stream()
                 .map(DTOMapper::toSubCategoryDTO)
                 .toList();
     }
@@ -173,23 +177,25 @@ public final class DTOMapper {
 
     public static List<String> toSubCategoryNames(final List<TopicSubCategory> rawSubCategories) {
         return rawSubCategories
-                .parallelStream()
+                .stream()
                 .map(TopicSubCategory::getName)
                 .toList();
     }
 
     public static String[] toSubCategoryNamesToArray(final List<TopicSubCategory> rawSubCategories) {
         return rawSubCategories
-                .parallelStream()
+                .stream()
                 .map(TopicSubCategory::getName)
                 .toArray(String[]::new);
     }
+
+
 
     /////////////////////////////////////////////////
 
     public static List<TopicDetailsDTO> toTopicDetails(final List<TopicDetails> rawTopicDetails) {
         return rawTopicDetails
-                .parallelStream()
+                .stream()
                 .map(DTOMapper::toTopicDetailsDTO)
                 .toList();
     }
@@ -206,7 +212,7 @@ public final class DTOMapper {
 
     public static List<UserRoleDTO> toRoles(final List<UserRole> rawUserRoles) {
         return rawUserRoles
-                .parallelStream()
+                .stream()
                 .map(DTOMapper::toRolesDTO)
                 .toList();
     }
@@ -221,7 +227,7 @@ public final class DTOMapper {
 
     public static List<VerificationTokenDTO> toVerificationTokens(final List<VerificationToken> rawVerificationTokens) {
         return rawVerificationTokens
-                .parallelStream()
+                .stream()
                 .map(DTOMapper::toVerTokenDTO)
                 .toList();
     }
@@ -234,4 +240,12 @@ public final class DTOMapper {
                 .build();
     }
 
+    /////////////////////////////////////////////////
+
+    public static List<String> toUserRoles(final Collection<GrantedAuthority> rawAuthorities) {
+        return rawAuthorities
+                .stream()
+                .map(GrantedAuthority::getAuthority)
+                .toList();
+    }
 }

@@ -2,20 +2,17 @@ package pl.scf;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Session;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import pl.scf.model.*;
 import pl.scf.model.property.AdministratorAccountProperty;
 import pl.scf.model.property.InitializerProperty;
-import pl.scf.model.repositories.IAppUserRepository;
-import pl.scf.model.repositories.IForumUserTitleRepository;
-import pl.scf.model.repositories.IUserRoleRepository;
+import pl.scf.model.property.TopicCategoryProperty;
+import pl.scf.model.repositories.*;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static pl.scf.api.model.utils.ApiConstants.*;
 
@@ -23,13 +20,17 @@ import static pl.scf.api.model.utils.ApiConstants.*;
 @Component
 @AllArgsConstructor
 public class DatabaseInitializer {
-    private IForumUserTitleRepository titleRepository;
-    private IUserRoleRepository roleRepository;
-    private IAppUserRepository userRepository;
+    private final IForumUserTitleRepository titleRepository;
+    private final IUserRoleRepository roleRepository;
+    private final IAppUserRepository userRepository;
 
-    private PasswordEncoder passwordEncoder;
-    private InitializerProperty initializerProperty;
-    private AdministratorAccountProperty administratorAccountProperty;
+    private final PasswordEncoder passwordEncoder;
+    private final InitializerProperty initializerProperty;
+    private final AdministratorAccountProperty administratorAccountProperty;
+
+    private final TopicCategoryProperty categoryProperty;
+    private final ITopicSubCategoryRepository subCategoryRepository;
+    private final ITopicCategoryRepository categoryRepository;
 
     @Bean
     public final void initialize() {
@@ -86,6 +87,29 @@ public class DatabaseInitializer {
                     log.info(ADMIN_ACCOUNT_CREATE);
                 }
         );
+
+        if(categoryRepository.count() < categoryProperty.getCategories().size()) {
+            categoryProperty.getCategories().forEach(
+                    (category) -> {
+                        final TopicCategory topicCategory = TopicCategory.builder()
+                                .name(category.getCategoryName())
+                                .imageURL(category.getImageURL())
+                                .build();
+
+                        final var savedTopicCategory = categoryRepository.saveAndFlush(topicCategory);
+                        Arrays.asList(category.getSubCategoryNames())
+                                        .parallelStream()
+                                        .map(subCat ->
+                                                TopicSubCategory.builder()
+                                                        .name(subCat)
+                                                        .category(savedTopicCategory)
+                                                        .build()
+                                        ).forEachOrdered(subCategoryRepository::saveAndFlush);
+                        log.info(SAVING, "TopicSubCategory");
+                    }
+            );
+        } else
+            log.info("All TopicCategories exists");
     }
 
     private List<ForumUserTitle> getPreparedTitles(final Map<String, String> data) {

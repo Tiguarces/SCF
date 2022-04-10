@@ -9,7 +9,7 @@ spring:
     ansi:
       enabled: ALWAYS
   datasource:
-    url: 'jdbc:mysql://localhost:3306/scf'
+    url: "jdbc:mysql://localhost:3306/scf"
     username: dejwid
     password: passat
   jpa:
@@ -25,7 +25,7 @@ spring:
 ### JWT TOKEN ###
 jwt-token:
   secret_password: scf_passat
-  expired_time: '1800000'
+  expired_time: 1800000
   issuer: SCF
 
 ### Verification email token ###
@@ -40,26 +40,147 @@ ver-token:
 
 ### Activation email message ###
 activation-messages:
-  positive: 'Możesz śmiało korzystać ze swojego konta'
-  exists: 'Twoje konto już istnieje i jest potwierdzone'
+  positive: Możesz śmiało korzystać ze swojego konta
+  exists: Twoje konto już istnieje i jest potwierdzone
 
 
 ### Database Initializer ###
 user:
   titles:
-    - 'Nowy': '0-50'
-    - 'Ciekawski': "51-99"
-    - 'Pomocny': '100-199'
-    - 'Specjalista': '200-499'
-    - 'Prawdziwy-szef': '1500'
+    - Nowy: 0-50
+    - Ciekawski: 51-99
+    - Pomocny: 100-199
+    - Specjalista: 200-499
+    - Prawdziwy-szef: 1500
 
   roles:
-    - 'USER'
-    - 'ADMIN'
-    - 'MODERATOR'
+    - USER
+    - ADMIN
+    - MODERATOR
 
 admin-account:
   username: dejwid
   password: passat
   nickname: Dave
   email: dave_admin@mail_scf.com
+
+topic:
+  categories:
+    - categoryName: Procesory
+      imageURL: https://cdn-icons-png.flaticon.com/512/543/543234.png
+      subCategoryNames: [
+        AMD ,  Intel ,  Inne
+      ]
+
+    - categoryName: Płyty główne
+      imageURL: https://cdn0.iconfinder.com/data/icons/computer-interface-glyph/128/1-41-512.png
+      subCategoryNames: [
+        AMD ,  Intel , Inne
+      ]
+
+    - categoryName: Karty graficzne
+      imageURL: https://cdn4.iconfinder.com/data/icons/network-35/512/network19-512.png
+      subCategoryNames: [
+        AMD/ATI, NVIDIA, Inni producenci
+      ]
+
+    - categoryName: Pamięci RAM
+      imageURL: https://cdn0.iconfinder.com/data/icons/mobile-phone-componets-1/144/mobile-icon_05-512.png
+      subCategoryNames: []
+
+    - categoryName: Zasilacze komputerowe
+      imageURL: https://cdn0.iconfinder.com/data/icons/pc-hardware-2/128/PC_Hardware_Set_Artboard_15-512.png
+      subCategoryNames: [ ]
+
+    - categoryName: Dyski
+      imageURL: https://icons.iconarchive.com/icons/zhoolego/material/512/Harddrive-icon.png
+      subCategoryNames: [
+        SSD ,  HDD ,  Inne
+      ]
+
+    - categoryName: Obudowy komputerowe
+      imageURL: https://www.inventicons.com/uploads/iconset/1933/wm/512/Desktop-Computer-Cabinet-Pc-Case-28.png
+      subCategoryNames: [ ]
+
+    - categoryName: Chłodzenie podzespołów
+      imageURL: https://cdn-icons-png.flaticon.com/512/2422/2422461.png
+      subCategoryNames: [
+        Procesory ,  Karty graficzne ,  Inne
+      ]
+
+    - categoryName: Laptopy
+      imageURL: https://cdn0.iconfinder.com/data/icons/devices-icons-rounded/110/Laptop-512.png
+      subCategoryNames: [
+        Biurowe ,  Gamingowe
+      ]
+
+    - categoryName: Komputery
+      imageURL: https://cdn-icons-png.flaticon.com/512/187/187503.png
+      subCategoryNames: [
+        Apple ,  Zestawy komputerowe ,  Gotowce
+      ]
+
+    - categoryName: Urządzenia mobilne
+      imageURL: https://upload.wikimedia.org/wikipedia/commons/2/2d/Mobile-Smartphone-icon.png
+      subCategoryNames: [
+        Smartfony ,  Tablety ,  Inne
+      ]
+
+    - categoryName: Gry
+      imageURL: https://upload.wikimedia.org/wikipedia/commons/thumb/f/fe/Video-Game-Controller-Icon-IDV-green.svg/2048px-Video-Game-Controller-Icon-IDV-green.svg.png
+      subCategoryNames: [
+        Komputerowe ,  Konsolowe
+      ]
+
+    - categoryName: Peryferia komputerowa
+      imageURL: http://cdn.onlinewebfonts.com/svg/img_474470.png
+      subCategoryNames: [
+        Klawiatury ,  Myszki komputerowe ,   Wentylatory ,
+        Narzędzia ,  Inne
+      ]
+
+    - categoryName: Nagłośnienie
+      imageURL: https://www.shareicon.net/data/512x512/2016/08/18/809278_multimedia_512x512.png
+      subCategoryNames: [ ]
+
+    - categoryName: Monitory
+      imageURL: https://icons.iconarchive.com/icons/designbolts/free-multimedia/1024/Monitor-icon.png
+      subCategoryNames: [ ]
+
+    - categoryName: Serwery
+      imageURL: https://cdn-icons-png.flaticon.com/512/173/173045.png
+      subCategoryNames: [ ]
+
+    - categoryName: Drukarki
+      imageURL: https://www.freeiconspng.com/uploads/printer-icon--free-flat-multimedia-iconset--designbolts-26.png
+      subCategoryNames: [ ]
+
+    - categoryName: Sieci komputerowe, bezpieczeństwo
+      imageURL: https://www.freeiconspng.com/thumbs/network-icon/communication-community-connection-global-internet-network-icon--14.png
+      subCategoryNames: [ ]
+
+    - categoryName: Oprogramowanie
+      imageURL: https://icon-library.com/images/software-icon/software-icon-6.jpg
+      subCategoryNames: [ ]
+
+    - categoryName: Systemy operacyjne
+      imageURL: https://img.icons8.com/ios/500/operating-system.png
+      subCategoryNames: [
+        Windows ,  Unix/Linux , macOS,  Inne
+      ]
+
+    - categoryName: Programowanie
+      imageURL: https://cdn-icons-png.flaticon.com/512/1802/1802977.png
+      subCategoryNames: [ ]
+
+    - categoryName: Konsole do gier
+      imageURL: https://cdn-icons-png.flaticon.com/512/189/189522.png
+      subCategoryNames: [ ]
+
+    - categoryName: Nietypowe tematy
+      imageURL: https://cdn2.iconfinder.com/data/icons/color-svg-vector-icons-part-2/512/quote_talk_bubble_comment-512.png
+      subCategoryNames: [ ]
+
+    - categoryName: Problemy, zapytania
+      imageURL: https://cdn-icons-png.flaticon.com/512/1066/1066422.png
+      subCategoryNames: [ ]

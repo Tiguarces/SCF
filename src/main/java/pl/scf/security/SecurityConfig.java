@@ -36,13 +36,14 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private final String[] allowedRoutes = new String[] {
             "/auth/login",
             "/auth/logout",
+            "/auth/refresh",
 
             "/auth/register",
             "/auth/activate/**",
             "/auth/email/sendAgain/**",
 
             "/all/amount/{amount}",
-            "/topic/category/all/names",
+            "/topic/category/all/**"
     };
 
     private final String[] administrator_moderatorRoutes = new String[] {
