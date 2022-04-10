@@ -205,14 +205,16 @@ public class AppUserService {
                     .build();
         }
 
-        final UserRole role = roleRepository.findById(request.getRoleId()).orElse(new UserRole(null, "ROLE_USER", null));
+        final UserRole role = roleRepository.findById(request.getRoleId())
+                .orElse(new UserRole(null, "ROLE_USER", null));
         final AppUser appUser = AppUser.builder()
                 .username(request.getUsername())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(role)
                 .build();
 
-        final ForumUserTitle beginnerTitle = titleRepository.findById(1L).orElse(new ForumUserTitle(null, "0-0", "Nie określone", null));
+        final ForumUserTitle beginnerTitle = titleRepository.findById(1L)
+                .orElse(new ForumUserTitle(null, "0-0", "Nie określone", null));
         final ForumUser forumUser = ForumUser.builder()
                 .user(appUser)
                 .description(new ForumUserDescription())
@@ -239,7 +241,8 @@ public class AppUserService {
         appUser.setUser_details(userDetails);
         appUser.setToken(verificationToken);
 
-        final boolean isSent = mailService.sendEmail(new MailNotification(emailProperty.getEmail_subject(), userDetails.getEmail(), emailProperty.getEmail_from(), emailProperty.getEmail_content(),
+        final boolean isSent = mailService.sendEmail(new MailNotification(emailProperty.getEmail_subject(),
+                userDetails.getEmail(), emailProperty.getEmail_from(), emailProperty.getEmail_content(),
                 verificationToken.getToken(), appUser.getUsername()), mailSender);
 
         if(isSent) {
@@ -431,7 +434,8 @@ public class AppUserService {
                             .build();
 
                     log.info("Update verification email, sending email again");
-                    mailService.sendEmail(new MailNotification(emailProperty.getEmail_subject(), userDetails.getEmail(), emailProperty.getEmail_from(), emailProperty.getEmail_content(),
+                    mailService.sendEmail(new MailNotification(emailProperty.getEmail_subject(), userDetails.getEmail(),
+                            emailProperty.getEmail_from(), emailProperty.getEmail_content(),
                             verificationToken.getToken(), value.getUsername()), mailSender);
                 },
                 () -> response = UniversalResponse.builder()

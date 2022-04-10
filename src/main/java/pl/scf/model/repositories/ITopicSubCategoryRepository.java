@@ -11,7 +11,9 @@ import java.util.Optional;
 public interface ITopicSubCategoryRepository extends JpaRepository<TopicSubCategory, Long> {
     Optional<TopicSubCategory> findByName(String subCategoryName);
 
+    List<TopicSubCategory> findAllByCategoryName(String categoryName);
+
     boolean existsByName(String subCategoryName);
 
-    List<TopicSubCategory> findAllByCategoryName(String categoryName);
+    boolean existsByNameIn(String[] subCategoryNames);
 }

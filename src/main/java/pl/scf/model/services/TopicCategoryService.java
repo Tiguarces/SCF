@@ -16,6 +16,7 @@ import pl.scf.model.repositories.ITopicCategoryRepository;
 import pl.scf.model.repositories.ITopicRepository;
 import pl.scf.model.repositories.ITopicSubCategoryRepository;
 
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -32,7 +33,6 @@ public class TopicCategoryService {
     private final ITopicSubCategoryRepository subCategoryRepository;
     private final String toMessageTopicCategoryWord = "TopicCategory";
 
-    /// TODO: add subCategory as array
     private UniversalResponse saveResponse;
     public final UniversalResponse save(final TopicCategorySaveRequest request) {
         if (request.getName() == null) {
@@ -43,7 +43,7 @@ public class TopicCategoryService {
                     .message(String.format(NOT_VALID_ELEMENT_MESSAGE, "New category name"))
                     .build();
 
-        } else if(subCategoryRepository.existsByName(request.getSubCategoryName())) {
+        } else if(subCategoryRepository.existsByNameIn(request.getSubCategoryNames())) {
             log.warn(String.format(ELEMENT_EXISTS, "SubCategory"));
             saveResponse =  UniversalResponse.builder()
                     .success(false)
@@ -67,17 +67,18 @@ public class TopicCategoryService {
                                 .imageURL(request.getImageURL())
                                 .build();
 
-                        final TopicSubCategory subCategory = TopicSubCategory.builder()
-                                .name(request.getSubCategoryName())
-                                .category(topicCategory)
-                                .build();
+                        var savedTopicCategory = categoryRepository.saveAndFlush(topicCategory);
+                        log.info(SAVING, "TopicCategory");
 
-                        log.info(SAVING, "TopicSubCategory");
-                        subCategoryRepository.save(subCategory);
+                        Arrays.asList(request.getSubCategoryNames())
+                                .parallelStream()
+                                .map(subCatName -> TopicSubCategory.builder()
+                                        .name(subCatName)
+                                        .category(savedTopicCategory)
+                                        .build())
+                                .forEachOrdered(subCategoryRepository::saveAndFlush);
 
-                        log.info(SAVING, toMessageTopicCategoryWord);
-                        categoryRepository.save(topicCategory);
-
+                        log.info(SAVING, "TopicSubCategories");
                         saveResponse = UniversalResponse.builder()
                                 .success(true)
                                 .date(new Date(System.currentTimeMillis()))

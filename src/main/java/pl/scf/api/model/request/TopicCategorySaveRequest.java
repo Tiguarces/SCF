@@ -6,5 +6,5 @@ import lombok.Data;
 public class TopicCategorySaveRequest {
     private String name;
     private String imageURL;
-    private String subCategoryName;
+    private String[] subCategoryNames;
 }
