@@ -5,15 +5,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import pl.scf.api.model.dto.ForumUserDTO;
 import pl.scf.api.model.dto.ForumUserTitleDTO;
+import pl.scf.api.model.exception.IdentificationException;
+import pl.scf.api.model.exception.NotFoundException;
 import pl.scf.api.model.request.ForumUserTitleSaveRequest;
 import pl.scf.api.model.request.ForumUserTitleUpdateRequest;
 import pl.scf.api.model.response.ForumUserTitleResponse;
 import pl.scf.api.model.response.UniversalResponse;
-import pl.scf.model.ForumUser;
 import pl.scf.model.ForumUserTitle;
 import pl.scf.model.repositories.IForumUserTitleRepository;
 
-import java.util.Date;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +22,7 @@ import java.util.Map;
 import static pl.scf.api.model.utils.ApiConstants.*;
 import static pl.scf.api.model.utils.DTOMapper.toForumUser;
 import static pl.scf.api.model.utils.DTOMapper.toForumUserTitle;
+import static pl.scf.api.model.utils.ResponseUtil.throwExceptionWhenIdZero;
 
 @Slf4j
 @Service
@@ -30,33 +32,26 @@ public class ForumUserTitleService {
     private final String toMessageForumUserTitleWord = "ForumUserTitle";
 
     public final UniversalResponse save(final ForumUserTitleSaveRequest request) {
-        try {
-            final ForumUserTitle title = ForumUserTitle.builder()
-                    .titleName(request.getTitleName())
-                    .rangeIntervalPoints(request.getRangeIntervalPoints())
-                    .build();
+        final ForumUserTitle title = ForumUserTitle.builder()
+                .titleName(request.getTitleName())
+                .rangeIntervalPoints(request.getRangeIntervalPoints())
+                .build();
 
-            log.info(SAVING, toMessageForumUserTitleWord);
-            titleRepository.save(title);
+        log.info(SAVING, toMessageForumUserTitleWord);
+        titleRepository.save(title);
 
-            return UniversalResponse.builder()
-                    .success(true)
-                    .date(new Date(System.currentTimeMillis()))
-                    .message(SUCCESS_SAVING)
-                    .build();
+        return UniversalResponse.builder()
+                .success(true)
+                .date(Instant.now())
+                .message(SUCCESS_SAVING)
+                .build();
 
-        } catch (final Exception exception) {
-            log.warn(NULLABLE_MESSAGE, "Request");
-            return UniversalResponse.builder()
-                    .success(false)
-                    .date(new Date(System.currentTimeMillis()))
-                    .message(FAIL_SAVING)
-                    .build();
-        }
     }
 
     private ForumUserTitleResponse userByIdResponse;
-    public final ForumUserTitleResponse getById(final Long id) {
+    public final ForumUserTitleResponse getById(final Long id) throws NotFoundException, IdentificationException {
+        throwExceptionWhenIdZero(id);
+
         titleRepository.findById(id).ifPresentOrElse(
                 (foundTitle) -> {
                     log.info(FETCH_BY_ID, toMessageForumUserTitleWord, id);
@@ -67,25 +62,21 @@ public class ForumUserTitleService {
 
                     userByIdResponse = ForumUserTitleResponse.builder()
                             .success(true)
-                            .date(new Date(System.currentTimeMillis()))
+                            .date(Instant.now())
                             .message(SUCCESS_FETCHING)
                             .title(titleDTO)
                             .build();
                 },
                 () -> {
-                    log.warn(NOT_FOUND_BY_ID, toMessageForumUserTitleWord, id);
-                    userByIdResponse = ForumUserTitleResponse.builder()
-                            .success(false)
-                            .date(new Date(System.currentTimeMillis()))
-                            .message(FAIL_FETCHING)
-                            .title(null)
-                            .build();
+                    throw new NotFoundException("Not found ForumUserTitle with specified id");
                 }
         ); return userByIdResponse;
     }
 
     private UniversalResponse updateResponse;
-    public final UniversalResponse update(final ForumUserTitleUpdateRequest request) {
+    public final UniversalResponse update(final ForumUserTitleUpdateRequest request) throws NotFoundException, IdentificationException{
+        throwExceptionWhenIdZero(request.getTitleId());
+
         titleRepository.findById(request.getTitleId()).ifPresentOrElse(
                 (foundTitle) -> {
                     log.info(UPDATE_MESSAGE, toMessageForumUserTitleWord, foundTitle.getId());
@@ -96,23 +87,20 @@ public class ForumUserTitleService {
 
                     updateResponse = UniversalResponse.builder()
                             .success(true)
-                            .date(new Date(System.currentTimeMillis()))
+                            .date(Instant.now())
                             .message(SUCCESS_UPDATE)
                             .build();
                 },
                 () -> {
-                    log.warn(NOT_FOUND_BY_ID, toMessageForumUserTitleWord, request.getTitleId());
-                    updateResponse = UniversalResponse.builder()
-                            .success(false)
-                            .date(new Date(System.currentTimeMillis()))
-                            .message(FAIL_UPDATE)
-                            .build();
+                    throw new NotFoundException("Not found ForumUserTitle with specified id");
                 }
         ); return updateResponse;
     }
 
     private UniversalResponse deleteResponse;
-    public final UniversalResponse delete(final Long id) {
+    public final UniversalResponse delete(final Long id) throws NotFoundException, IdentificationException {
+        throwExceptionWhenIdZero(id);
+
         titleRepository.findById(id).ifPresentOrElse(
                 (foundTitle) -> {
                     log.info(DELETING_MESSAGE, toMessageForumUserTitleWord, id);
@@ -120,17 +108,12 @@ public class ForumUserTitleService {
 
                     deleteResponse = UniversalResponse.builder()
                             .success(true)
-                            .date(new Date(System.currentTimeMillis()))
+                            .date(Instant.now())
                             .message(SUCCESS_DELETE)
                             .build();
                 },
                 () -> {
-                    log.warn(NOT_FOUND_BY_ID, toMessageForumUserTitleWord, id);
-                    deleteResponse = UniversalResponse.builder()
-                            .success(false)
-                            .date(new Date(System.currentTimeMillis()))
-                            .message(FAIL_DELETE)
-                            .build();
+                    throw new NotFoundException("Not found ForumUserTitle with specified id");
                 }
         ); return deleteResponse;
     }

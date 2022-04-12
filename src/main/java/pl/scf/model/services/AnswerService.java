@@ -4,23 +4,23 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import pl.scf.api.model.dto.AnswerDTO;
+import pl.scf.api.model.exception.IdentificationException;
 import pl.scf.api.model.exception.NotFoundException;
 import pl.scf.api.model.request.AnswerSaveRequest;
 import pl.scf.api.model.request.UpdateAnswerRequest;
 import pl.scf.api.model.response.AnswerResponse;
 import pl.scf.api.model.response.UniversalResponse;
 import pl.scf.model.Answer;
-import pl.scf.model.ForumUser;
-import pl.scf.model.Topic;
 import pl.scf.model.repositories.IAnswerRepository;
 import pl.scf.model.repositories.IForumUserRepository;
 import pl.scf.model.repositories.ITopicRepository;
 
-import java.util.Date;
+import java.time.Instant;
 import java.util.List;
 
 import static pl.scf.api.model.utils.ApiConstants.*;
 import static pl.scf.api.model.utils.DTOMapper.toAnswer;
+import static pl.scf.api.model.utils.ResponseUtil.throwExceptionWhenIdZero;
 
 @Slf4j
 @Service
@@ -31,43 +31,37 @@ public class AnswerService {
     private final IForumUserRepository forumUserRepository;
     private final String toMessageAnswerWord = "Answer";
 
-    public final UniversalResponse save(final AnswerSaveRequest request) {
-        try {
-            final ForumUser forumUser = forumUserRepository.findById(request.getUserId())
-                                                    .orElseThrow(NotFoundException::new);
+    public final UniversalResponse save(final AnswerSaveRequest request) throws NotFoundException {
+        final var forumUser = forumUserRepository.findById(request.getUserId());
+        final var topic = topicRepository.findById(request.getTopicId());
 
-            final Topic topic = topicRepository.findById(request.getTopicId())
-                                                    .orElseThrow(NotFoundException::new);
+        if(forumUser.isEmpty())
+            throw new NotFoundException("Not found ForumUser, fail saving");
 
-            final Answer answer = Answer.builder()
-                            .content(request.getContent())
-                            .createdDate(request.getDate())
-                            .user(forumUser)
-                            .topic(topic)
-                            .build();
+        if(topic.isEmpty())
+            throw new NotFoundException("Not found Topic, fail saving");
 
-            answerRepository.save(answer);
-            log.info(SAVING, toMessageAnswerWord);
+        final Answer answer = Answer.builder()
+                .content(request.getContent())
+                .createdDate(request.getDate())
+                .user(forumUser.get())
+                .topic(topic.get())
+                .build();
 
-            return UniversalResponse.builder()
-                    .success(true)
-                    .message(SUCCESS_SAVING)
-                    .date(new Date(System.currentTimeMillis()))
-                    .build();
+        answerRepository.save(answer);
+        log.info(SAVING, toMessageAnswerWord);
 
-        } catch (final Exception exception) {
-            log.warn(EXCEPTION_MESSAGE, "saving", toMessageAnswerWord, exception.getMessage());
-
-            return UniversalResponse.builder()
-                    .success(false)
-                    .message(FAIL_SAVING)
-                    .date(new Date(System.currentTimeMillis()))
-                    .build();
-        }
+        return UniversalResponse.builder()
+                .success(true)
+                .message(SUCCESS_SAVING)
+                .date(Instant.now())
+                .build();
     }
 
     private AnswerResponse answerByIdResponse;
-    public final AnswerResponse getById(final Long id) {
+    public final AnswerResponse getById(final Long id) throws NotFoundException, IdentificationException {
+        throwExceptionWhenIdZero(id);
+
         answerRepository.findById(id).ifPresentOrElse(
                 (foundAnswer) -> {
                     log.info(FETCH_BY_ID, toMessageAnswerWord, id);
@@ -81,23 +75,19 @@ public class AnswerService {
                     answerByIdResponse = AnswerResponse.builder()
                             .success(true)
                             .message(SUCCESS_FETCHING)
-                            .date(new Date(System.currentTimeMillis()))
+                            .date(Instant.now())
                             .answer(answerDTO)
                             .build();
                 }, () -> {
-                    log.warn(NOT_FOUND_BY_ID, toMessageAnswerWord, id);
-                    answerByIdResponse = AnswerResponse.builder()
-                            .success(false)
-                            .message(FAIL_FETCHING)
-                            .date(new Date(System.currentTimeMillis()))
-                            .answer(null)
-                            .build();
+                    throw new NotFoundException("Not found Answer with specified id, fail fetching");
                 }
         ); return answerByIdResponse;
     }
 
     private UniversalResponse updateResponse;
-    public final UniversalResponse update(final UpdateAnswerRequest request) {
+    public final UniversalResponse update(final UpdateAnswerRequest request) throws NotFoundException, IdentificationException {
+        throwExceptionWhenIdZero(request.getAnswerId());
+
         answerRepository.findById(request.getAnswerId()).ifPresentOrElse(
                 (foundAnswer) -> {
                     log.info(UPDATE_MESSAGE, toMessageAnswerWord, request.getAnswerId());
@@ -107,22 +97,19 @@ public class AnswerService {
                     updateResponse = UniversalResponse.builder()
                             .success(true)
                             .message(SUCCESS_UPDATE)
-                            .date(new Date(System.currentTimeMillis()))
+                            .date(Instant.now())
                             .build();
                 },
                 () -> {
-                    log.warn(NOT_FOUND_BY_ID, toMessageAnswerWord, request.getAnswerId());
-                    updateResponse = UniversalResponse.builder()
-                            .success(false)
-                            .message(FAIL_UPDATE)
-                            .date(new Date(System.currentTimeMillis()))
-                            .build();
+                    throw new NotFoundException("Not found Answer, fail updating");
                 }
         ); return updateResponse;
     }
 
     private UniversalResponse deleteResponse;
-    public final UniversalResponse delete(final Long id) {
+    public final UniversalResponse delete(final Long id) throws NotFoundException, IdentificationException {
+        throwExceptionWhenIdZero(id);
+
         answerRepository.findById(id).ifPresentOrElse(
                 (foundAnswer) -> {
                     log.info(DELETING_MESSAGE, toMessageAnswerWord, id);
@@ -131,16 +118,11 @@ public class AnswerService {
                     deleteResponse = UniversalResponse.builder()
                             .success(true)
                             .message(SUCCESS_DELETE)
-                            .date(new Date(System.currentTimeMillis()))
+                            .date(Instant.now())
                             .build();
                 },
                 () -> {
-                    log.warn(NOT_FOUND_BY_ID, toMessageAnswerWord, id);
-                    deleteResponse = UniversalResponse.builder()
-                            .success(false)
-                            .message(FAIL_DELETE)
-                            .date(new Date(System.currentTimeMillis()))
-                            .build();
+                    throw new NotFoundException("Not found Answer with specified id, fail deleting");
                 }
         ); return deleteResponse;
     }

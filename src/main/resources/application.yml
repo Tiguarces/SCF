@@ -22,11 +22,13 @@ spring:
     hibernate:
       ddl-auto: update
 
+
 ### JWT TOKEN ###
 jwt-token:
   secret_password: scf_passat
   expired_time: 1800000
   issuer: SCF
+
 
 ### Verification email token ###
 ver-token:
@@ -37,6 +39,7 @@ ver-token:
     %s, Thank you for using SCF. Your account has been created successfully.
     The last step is activating your account. Click this link to activate:
     http://localhost:8080/auth/activate/%s
+
 
 ### Activation email message ###
 activation-messages:
@@ -64,6 +67,8 @@ admin-account:
   nickname: Dave
   email: dave_admin@mail_scf.com
 
+
+### Default Topic Categories ###
 topic:
   categories:
     - categoryName: Procesory
@@ -86,7 +91,7 @@ topic:
 
     - categoryName: Pamięci RAM
       imageURL: https://cdn0.iconfinder.com/data/icons/mobile-phone-componets-1/144/mobile-icon_05-512.png
-      subCategoryNames: []
+      subCategoryNames: [ ]
 
     - categoryName: Zasilacze komputerowe
       imageURL: https://cdn0.iconfinder.com/data/icons/pc-hardware-2/128/PC_Hardware_Set_Artboard_15-512.png

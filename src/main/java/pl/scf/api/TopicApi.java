@@ -9,8 +9,6 @@ import pl.scf.api.model.request.TopicSaveRequest;
 import pl.scf.api.model.request.TopicUpdateRequest;
 import pl.scf.api.model.response.TopicResponse;
 import pl.scf.api.model.response.UniversalResponse;
-import pl.scf.model.Answer;
-import pl.scf.model.Topic;
 import pl.scf.model.services.TopicService;
 
 import java.util.List;

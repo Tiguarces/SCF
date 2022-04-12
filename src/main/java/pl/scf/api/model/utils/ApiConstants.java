@@ -23,7 +23,6 @@ public final class ApiConstants {
     public static final String FAIL_ACTIVATION_EMAIL = "Fail while email activation";
 
     public static final String SUCCESS_SEND_EMAIL_AGAIN = "Email sent again successfully";
-    public static final String FAIL_SEND_EMAIL_AGAIN = "Email not send again, fail";
 
     public static final String SUCCESS_SEND_EMAIL = "User created successfully, sending activation email";
     public static final String FAIL_SEND_EMAIL = "User not created, problem with sending activation email";
@@ -36,14 +35,13 @@ public final class ApiConstants {
     public static final String USER_TITLES_EXISTS = "All User Roles exists";
 
     public static final String NOT_VALID_ELEMENT_MESSAGE = "%s is null or empty";
-    public static final String ID_ERROR_MESSAGE = "Id must be greater than 0";
+    public static final String ID_ERROR_MESSAGE = "ID must be greater than 0 and not null";
     public static final String ELEMENT_EXISTS = "%s exists in the database";
     public static final String SUCCESS_FETCHING = "Successfully fetching";
     public static final String FAIL_FETCHING = "Failure fetching";
     public static final String DELETE_ALL = "Delete all {}";
 
     public static final String LOGIN_SUCCESS = "Successfully logging user";
-    public static final String LOGIN_FAIL = "Failure logging user";
     public static final String LOGOUT_USER = "Successfully logout user";
 
     public static final String USER_EXISTS = "User already exists";

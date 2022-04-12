@@ -7,7 +7,6 @@ import pl.scf.api.model.dto.AnswerDTO;
 import pl.scf.api.model.request.AnswerSaveRequest;
 import pl.scf.api.model.request.UpdateAnswerRequest;
 import pl.scf.api.model.response.UniversalResponse;
-import pl.scf.model.Answer;
 import pl.scf.model.services.AnswerService;
 
 import java.util.List;

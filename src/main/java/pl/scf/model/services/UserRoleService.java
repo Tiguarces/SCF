@@ -4,18 +4,22 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import pl.scf.api.model.dto.UserRoleDTO;
+import pl.scf.api.model.exception.IdentificationException;
+import pl.scf.api.model.exception.NotFoundException;
 import pl.scf.api.model.request.UserRoleUpdateRequest;
+import pl.scf.api.model.response.ExtendedUserRoleDTO;
 import pl.scf.api.model.response.UniversalResponse;
 import pl.scf.api.model.response.UserRoleResponse;
 import pl.scf.model.UserRole;
 import pl.scf.model.repositories.IUserRoleRepository;
 
-import java.util.Date;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
 import static pl.scf.api.model.utils.ApiConstants.*;
 import static pl.scf.api.model.utils.DTOMapper.toRoles;
+import static pl.scf.api.model.utils.ResponseUtil.throwExceptionWhenIdZero;
 
 @Slf4j
 @Service
@@ -29,7 +33,7 @@ public class UserRoleService {
         if(roleName == null) {
             saveResponse = UniversalResponse.builder()
                     .success(false)
-                    .date(new Date(System.currentTimeMillis()))
+                    .date(Instant.now())
                     .message("RoleName is null")
                     .build();
         } else {
@@ -38,7 +42,7 @@ public class UserRoleService {
                         log.warn("Role exists, skipping adding");
                         saveResponse = UniversalResponse.builder()
                                 .success(false)
-                                .date(new Date(System.currentTimeMillis()))
+                                .date(Instant.now())
                                 .message(FAIL_SAVING + " | Role exists")
                                 .build();
                     },() -> {
@@ -51,7 +55,7 @@ public class UserRoleService {
 
                         saveResponse = UniversalResponse.builder()
                                 .success(true)
-                                .date(new Date(System.currentTimeMillis()))
+                                .date(Instant.now())
                                 .message(SUCCESS_SAVING)
                                 .build();
                     }
@@ -60,7 +64,9 @@ public class UserRoleService {
     }
 
     private UserRoleResponse roleByIdResponse;
-    public final UserRoleResponse getById(final Long id) {
+    public final UserRoleResponse getById(final Long id) throws NotFoundException, IdentificationException {
+        throwExceptionWhenIdZero(id);
+
         roleRepository.findById(id).ifPresentOrElse(
                 (foundRole) -> {
                     log.info(FETCH_BY_ID, toMessageUserRoleWord, id);
@@ -70,25 +76,19 @@ public class UserRoleService {
 
                     roleByIdResponse = UserRoleResponse.builder()
                             .success(true)
-                            .date(new Date(System.currentTimeMillis()))
+                            .date(Instant.now())
                             .message(SUCCESS_FETCHING)
                             .userRole(roleDTO)
                             .build();
                 },
                 () -> {
-                    log.warn(NOT_FOUND_BY_ID, toMessageUserRoleWord, id);
-                    roleByIdResponse = UserRoleResponse.builder()
-                            .success(false)
-                            .date(new Date(System.currentTimeMillis()))
-                            .message(FAIL_FETCHING)
-                            .userRole(null)
-                            .build();
+                    throw new NotFoundException("Not found UserRole with specified id");
                 }
         ); return roleByIdResponse;
     }
 
     private UserRoleResponse roleByNameResponse;
-    public final UserRoleResponse getByName(final String name) {
+    public final UserRoleResponse getByName(final String name) throws NotFoundException{
         Optional.ofNullable(roleRepository.findByName(name)).ifPresentOrElse(
                 (foundRole) -> {
                     log.info(FETCHING_BY_STH_MESSAGE, toMessageUserRoleWord, "name", name);
@@ -98,33 +98,29 @@ public class UserRoleService {
 
                     roleByNameResponse = UserRoleResponse.builder()
                             .success(true)
-                            .date(new Date(System.currentTimeMillis()))
+                            .date(Instant.now())
                             .message(SUCCESS_FETCHING)
                             .userRole(roleDTO)
                             .build();
                 },
                 () -> {
-                    log.warn(NOT_FOUND_BY_STH, toMessageUserRoleWord, "name", name);
-                    roleByNameResponse = UserRoleResponse.builder()
-                            .success(false)
-                            .date(new Date(System.currentTimeMillis()))
-                            .message(FAIL_FETCHING)
-                            .userRole(null)
-                            .build();
+                    throw new NotFoundException("Not found UserRole with specified name");
                 }
         ); return roleByNameResponse;
     }
 
     private UniversalResponse updateResponse;
-    public final UniversalResponse update(final UserRoleUpdateRequest request) {
+    public final UniversalResponse update(final UserRoleUpdateRequest request) throws NotFoundException, IdentificationException{
+        throwExceptionWhenIdZero(request.getRoleId());
+
         roleRepository.findById(request.getRoleId()).ifPresentOrElse(
                 (foundRole) -> {
                     if(foundRole.getName().equalsIgnoreCase(request.getName())) {
                         log.warn("{} equal data", toMessageUserRoleWord);
                         updateResponse = UniversalResponse.builder()
                                 .success(false)
-                                .date(new Date(System.currentTimeMillis()))
-                                .message("Role exists and names are equal | Skipping updating")
+                                .date(Instant.now())
+                                .message("Role exists and names are equals. Skipping updating")
                                 .build();
 
                     } else {
@@ -134,24 +130,21 @@ public class UserRoleService {
 
                         updateResponse = UniversalResponse.builder()
                                 .success(true)
-                                .date(new Date(System.currentTimeMillis()))
+                                .date(Instant.now())
                                 .message(SUCCESS_UPDATE)
                                 .build();
                     }
                 },
                 () -> {
-                    log.warn(NULLABLE_MESSAGE, "Request");
-                    updateResponse = UniversalResponse.builder()
-                            .success(false)
-                            .date(new Date(System.currentTimeMillis()))
-                            .message(FAIL_UPDATE)
-                            .build();
+                    throw new NotFoundException("Not found UserRole with specified id");
                 }
         ); return updateResponse;
     }
 
     private UniversalResponse deleteResponse;
-    public final UniversalResponse delete(final Long id) {
+    public final UniversalResponse delete(final Long id) throws NotFoundException, IdentificationException {
+        throwExceptionWhenIdZero(id);
+
         roleRepository.findById(id).ifPresentOrElse(
                 (foundRole) -> {
                     log.info(DELETING_MESSAGE, toMessageUserRoleWord, id);
@@ -159,19 +152,30 @@ public class UserRoleService {
 
                     deleteResponse = UniversalResponse.builder()
                             .success(true)
-                            .date(new Date(System.currentTimeMillis()))
+                            .date(Instant.now())
                             .message(SUCCESS_DELETE)
                             .build();
                 },
                 () -> {
-                    log.warn(NOT_FOUND_BY_ID, toMessageUserRoleWord, id);
-                    deleteResponse = UniversalResponse.builder()
-                            .success(false)
-                            .date(new Date(System.currentTimeMillis()))
-                            .message(FAIL_DELETE)
-                            .build();
+                    throw new NotFoundException("Not found UserRole with specified id");
                 }
         ); return deleteResponse;
+    }
+
+    private ExtendedUserRoleDTO getUserRoleResponse;
+    public final ExtendedUserRoleDTO getUserRole() throws NotFoundException {
+        Optional.ofNullable(roleRepository.findByName("USER")).ifPresentOrElse(
+                (foundRole) -> {
+                    log.info(NOT_FOUND_BY_STH, toMessageUserRoleWord, "name", "USER");
+                    getUserRoleResponse = ExtendedUserRoleDTO.builder()
+                            .id(foundRole.getId())
+                            .name(foundRole.getName())
+                            .build();
+                },
+                () -> {
+                    throw new NotFoundException("Not found User Role with specified role name");
+                }
+        ); return getUserRoleResponse;
     }
 
     public final List<UserRoleDTO> getAll() {

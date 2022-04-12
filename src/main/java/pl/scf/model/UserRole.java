@@ -1,10 +1,7 @@
 package pl.scf.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.*;
 import java.util.Set;
@@ -29,6 +26,8 @@ public class UserRole {
     private String name;
 
     @JsonBackReference
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @OneToMany(fetch = LAZY, mappedBy = "role", cascade = MERGE)
     private Set<AppUser> user;
 }

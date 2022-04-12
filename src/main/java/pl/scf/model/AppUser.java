@@ -1,10 +1,7 @@
 package pl.scf.model;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.*;
 
@@ -28,6 +25,8 @@ public class AppUser {
     private String username;
     private String password;
 
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @JsonManagedReference
     @OneToOne(mappedBy = "user", cascade = ALL)
     private AppUserDetails user_details;
@@ -36,6 +35,8 @@ public class AppUser {
     @ManyToOne(fetch = EAGER, cascade = MERGE)
     private UserRole role;
 
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @JsonManagedReference
     @OneToOne(fetch = LAZY, mappedBy = "user", cascade = ALL)
     private VerificationToken token;

@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import pl.scf.api.model.dto.TopicCategoryDTO;
+import pl.scf.api.model.exception.IdentificationException;
+import pl.scf.api.model.exception.NotFoundException;
 import pl.scf.api.model.request.TopicCategorySaveRequest;
 import pl.scf.api.model.request.TopicCategoryUpdateRequest;
 import pl.scf.api.model.response.GetAllTopicCategoryResponse;
@@ -16,13 +18,13 @@ import pl.scf.model.repositories.ITopicCategoryRepository;
 import pl.scf.model.repositories.ITopicRepository;
 import pl.scf.model.repositories.ITopicSubCategoryRepository;
 
+import java.time.Instant;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 
 import static pl.scf.api.model.utils.ApiConstants.*;
 import static pl.scf.api.model.utils.DTOMapper.*;
-import static pl.scf.api.model.utils.ResponseUtil.messageByIdError;
+import static pl.scf.api.model.utils.ResponseUtil.throwExceptionWhenIdZero;
 
 @Slf4j
 @Service
@@ -39,7 +41,7 @@ public class TopicCategoryService {
             log.warn(NULLABLE_MESSAGE, "New category name");
             saveResponse =  UniversalResponse.builder()
                     .success(false)
-                    .date(new Date(System.currentTimeMillis()))
+                    .date(Instant.now())
                     .message(String.format(NOT_VALID_ELEMENT_MESSAGE, "New category name"))
                     .build();
 
@@ -47,7 +49,7 @@ public class TopicCategoryService {
             log.warn(String.format(ELEMENT_EXISTS, "SubCategory"));
             saveResponse =  UniversalResponse.builder()
                     .success(false)
-                    .date(new Date(System.currentTimeMillis()))
+                    .date(Instant.now())
                     .message(String.format(ELEMENT_EXISTS, "SubCategory"))
                     .build();
 
@@ -57,7 +59,7 @@ public class TopicCategoryService {
                         log.info("Category exists");
                         saveResponse =  UniversalResponse.builder()
                                 .success(false)
-                                .date(new Date(System.currentTimeMillis()))
+                                .date(Instant.now())
                                 .message("Category name exists")
                                 .build();
                     },
@@ -81,7 +83,7 @@ public class TopicCategoryService {
                         log.info(SAVING, "TopicSubCategories");
                         saveResponse = UniversalResponse.builder()
                                 .success(true)
-                                .date(new Date(System.currentTimeMillis()))
+                                .date(Instant.now())
                                 .message(SUCCESS_SAVING)
                                 .build();
                     }
@@ -90,15 +92,17 @@ public class TopicCategoryService {
     }
 
     private UniversalResponse updateResponse;
-    public final UniversalResponse update(final TopicCategoryUpdateRequest request) {
+    public final UniversalResponse update(final TopicCategoryUpdateRequest request) throws NotFoundException, IdentificationException {
         if (request.getName() == null) {
             log.warn(NULLABLE_MESSAGE, "New category name");
             updateResponse = UniversalResponse.builder()
                     .success(false)
-                    .date(new Date(System.currentTimeMillis()))
+                    .date(Instant.now())
                     .message(String.format(NOT_VALID_ELEMENT_MESSAGE, "New category name"))
                     .build();
         } else {
+            throwExceptionWhenIdZero(request.getTopicId());
+
             categoryRepository.findById(request.getTopicId()).ifPresentOrElse(
                     (foundCategory) -> {
                         log.info(UPDATE_MESSAGE, toMessageTopicCategoryWord, request.getTopicId());
@@ -108,24 +112,21 @@ public class TopicCategoryService {
                         categoryRepository.save(foundCategory);
                         updateResponse = UniversalResponse.builder()
                                 .success(true)
-                                .date(new Date(System.currentTimeMillis()))
+                                .date(Instant.now())
                                 .message(SUCCESS_UPDATE)
                                 .build();
                     },
                     () -> {
-                        log.warn(NOT_FOUND_BY_ID, toMessageTopicCategoryWord, request.getTopicId());
-                        updateResponse = UniversalResponse.builder()
-                                .success(false)
-                                .date(new Date(System.currentTimeMillis()))
-                                .message(messageByIdError(request.getTopicId(), toMessageTopicCategoryWord))
-                                .build();
+                        throw new NotFoundException("Not found TopicCategory with specified id");
                     }
             );
         } return updateResponse;
     }
 
     private UniversalResponse deleteResponse;
-    public final UniversalResponse delete(final Long id) {
+    public final UniversalResponse delete(final Long id) throws NotFoundException, IdentificationException {
+        throwExceptionWhenIdZero(id);
+
         categoryRepository.findById(id).ifPresentOrElse(
                 (foundCategory) -> {
                     log.info(DELETING_MESSAGE, toMessageTopicCategoryWord, id);
@@ -133,23 +134,21 @@ public class TopicCategoryService {
 
                     deleteResponse = UniversalResponse.builder()
                             .success(true)
-                            .date(new Date(System.currentTimeMillis()))
+                            .date(Instant.now())
                             .message(SUCCESS_DELETE)
                             .build();
                 },
                 () -> {
-                    log.warn(NOT_FOUND_BY_ID, toMessageTopicCategoryWord, id);
-                    deleteResponse = UniversalResponse.builder()
-                            .success(false)
-                            .date(new Date(System.currentTimeMillis()))
-                            .message(messageByIdError(id, toMessageTopicCategoryWord))
-                            .build();
+                    throw new NotFoundException("Not found TopicCategory with specified id");
                 }
         ); return deleteResponse;
     }
 
     private TopicCategoryResponse getByIdTopic;
-    public final TopicCategoryResponse getById(final Long id) {
+    public final TopicCategoryResponse getById(final Long id) throws NotFoundException, IdentificationException{
+        if(id == 0)
+            throw new IdentificationException(id);
+
         categoryRepository.findById(id).ifPresentOrElse(
                 (foundCategory) -> {
                     log.info(FETCH_BY_ID, toMessageTopicCategoryWord, id);
@@ -161,19 +160,13 @@ public class TopicCategoryService {
 
                     getByIdTopic = TopicCategoryResponse.builder()
                             .success(true)
-                            .date(new Date(System.currentTimeMillis()))
+                            .date(Instant.now())
                             .message(SUCCESS_FETCHING)
                             .category(categoryDTO)
                             .build();
                 },
                 () -> {
-                    log.warn(NOT_FOUND_BY_ID, toMessageTopicCategoryWord, id);
-                    getByIdTopic = TopicCategoryResponse.builder()
-                            .success(false)
-                            .date(new Date(System.currentTimeMillis()))
-                            .message(messageByIdError(id, toMessageTopicCategoryWord))
-                            .category(null)
-                            .build();
+                    throw new NotFoundException("Not found TopicCategory with specified id");
                 }
         ); return getByIdTopic;
     }
@@ -189,7 +182,7 @@ public class TopicCategoryService {
 
         return GetAllTopicCategoryResponse.builder()
                 .success(true)
-                .date(new Date(System.currentTimeMillis()))
+                .date(Instant.now())
                 .message(SUCCESS_FETCHING)
                 .categories(categories)
                 .build();

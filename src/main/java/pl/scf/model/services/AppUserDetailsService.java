@@ -4,16 +4,19 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import pl.scf.api.model.dto.AppUserDetailsDTO;
+import pl.scf.api.model.exception.IdentificationException;
+import pl.scf.api.model.exception.NotFoundException;
 import pl.scf.api.model.request.AppUserDetailsUpdateRequest;
 import pl.scf.api.model.response.AppUserDetailsResponse;
 import pl.scf.api.model.response.UniversalResponse;
 import pl.scf.model.repositories.IAppUserDetailsRepository;
 
-import java.util.Date;
+import java.time.Instant;
 import java.util.List;
 
 import static pl.scf.api.model.utils.ApiConstants.*;
 import static pl.scf.api.model.utils.DTOMapper.toDetails;
+import static pl.scf.api.model.utils.ResponseUtil.throwExceptionWhenIdZero;
 
 @Slf4j
 @Service
@@ -23,7 +26,9 @@ public class AppUserDetailsService {
     private final String toMessageDetailsWord = "AppUserDetails";
 
     private AppUserDetailsResponse detailsByIdResponse;
-    public final AppUserDetailsResponse getById(final Long id) {
+    public final AppUserDetailsResponse getById(final Long id) throws NotFoundException, IdentificationException {
+        throwExceptionWhenIdZero(id);
+
         detailsRepository.findById(id).ifPresentOrElse(
                 (foundDetails) -> {
                     log.info(FETCH_BY_ID, toMessageDetailsWord, id);
@@ -36,28 +41,20 @@ public class AppUserDetailsService {
                             .build();
 
                     detailsByIdResponse = AppUserDetailsResponse.builder()
-                            .date(new Date(System.currentTimeMillis()))
+                            .date(Instant.now())
                             .success(true)
                             .message("Found UserDetails")
                             .details(detailsDTO)
                             .build();
                 },
                 () -> {
-                    log.warn(NOT_FOUND_BY_ID, toMessageDetailsWord, id);
-                    detailsByIdResponse = AppUserDetailsResponse.builder()
-                            .date(new Date(System.currentTimeMillis()))
-                            .success(false)
-                            .message(id != 0
-                                    ? String.format(NOT_FOUND_MESSAGE, toMessageDetailsWord, "id", id)
-                                    : ID_ERROR_MESSAGE)
-                            .details(null)
-                            .build();
+                    throw new NotFoundException("Not found AppUserDetails with specified id");
                 }
         ); return detailsByIdResponse;
     }
 
     private AppUserDetailsResponse detailsByUsernameResponse;
-    public final AppUserDetailsResponse getByUsername(final String username) {
+    public final AppUserDetailsResponse getByUsername(final String username) throws NotFoundException {
         detailsRepository.findByUserUsername(username).ifPresentOrElse(
                 (foundDetails) -> {
                     log.info(FETCHING_BY_STH_MESSAGE, toMessageDetailsWord, "Username", username);
@@ -70,27 +67,23 @@ public class AppUserDetailsService {
                             .build();
 
                     detailsByUsernameResponse = AppUserDetailsResponse.builder()
-                            .date(new Date(System.currentTimeMillis()))
+                            .date(Instant.now())
                             .success(true)
                             .message("Found UserDetails")
                             .details(detailsDTO)
                             .build();
                 },
                 () -> {
-                    log.warn(NOT_FOUND_BY_STH, toMessageDetailsWord, "Username", username);
-                    detailsByUsernameResponse = AppUserDetailsResponse.builder()
-                            .date(new Date(System.currentTimeMillis()))
-                            .success(false)
-                            .message(String.format(NOT_FOUND_MESSAGE, toMessageDetailsWord, "username", username))
-                            .details(null)
-                            .build();
+                    throw new NotFoundException("Not found AppUser with specified name");
                 }
         );  return detailsByUsernameResponse;
     }
 
     private UniversalResponse updateResponse;
-    public final UniversalResponse update(final AppUserDetailsUpdateRequest userDetailsUpdateRequest) {
+    public final UniversalResponse update(final AppUserDetailsUpdateRequest userDetailsUpdateRequest) throws NotFoundException, IdentificationException {
         final Long userId = userDetailsUpdateRequest.getAppUserDetailsUserId();
+        throwExceptionWhenIdZero(userId);
+
         detailsRepository.findById(userId).ifPresentOrElse(
                 (foundUser) -> {
                     log.info(UPDATE_MESSAGE, toMessageDetailsWord, userId);
@@ -100,23 +93,20 @@ public class AppUserDetailsService {
 
                     updateResponse = UniversalResponse.builder()
                             .success(true)
-                            .date(new Date(System.currentTimeMillis()))
+                            .date(Instant.now())
                             .message(SUCCESS_UPDATE)
                             .build();
                 },
                 () -> {
-                    log.warn(NOT_FOUND_BY_ID, toMessageDetailsWord, userId);
-                    updateResponse = UniversalResponse.builder()
-                            .success(false)
-                            .date(new Date(System.currentTimeMillis()))
-                            .message(FAIL_UPDATE)
-                            .build();
+                    throw new NotFoundException("Not found AppUserDetails with specified id");
                 }
         ); return updateResponse;
     }
 
     private UniversalResponse deleteResponse;
-    public final UniversalResponse delete(final Long id) {
+    public final UniversalResponse delete(final Long id) throws NotFoundException, IdentificationException {
+        throwExceptionWhenIdZero(id);
+
         detailsRepository.findById(id).ifPresentOrElse(
                 (foundAppUser) -> {
                     log.info(DELETING_MESSAGE, toMessageDetailsWord,id);
@@ -124,17 +114,12 @@ public class AppUserDetailsService {
 
                     deleteResponse = UniversalResponse.builder()
                             .success(true)
-                            .date(new Date(System.currentTimeMillis()))
+                            .date(Instant.now())
                             .message(SUCCESS_DELETE)
                             .build();
                 },
                 () -> {
-                    log.warn(NOT_FOUND_BY_ID, toMessageDetailsWord, id);
-                    deleteResponse = UniversalResponse.builder()
-                            .success(true)
-                            .date(new Date(System.currentTimeMillis()))
-                            .message(FAIL_DELETE)
-                            .build();
+                    throw new NotFoundException("Not found AppUserDetails with specified id");
                 }
         ); return deleteResponse;
     }

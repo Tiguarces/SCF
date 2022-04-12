@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import pl.scf.api.model.dto.TopicSubCategoryDTO;
+import pl.scf.api.model.exception.IdentificationException;
+import pl.scf.api.model.exception.NotFoundException;
 import pl.scf.api.model.request.TopicSubCategorySaveRequest;
 import pl.scf.api.model.request.TopicSubCategoryUpdateRequest;
 import pl.scf.api.model.response.TopicSubCategoryResponse;
@@ -12,14 +14,13 @@ import pl.scf.model.TopicSubCategory;
 import pl.scf.model.repositories.ITopicCategoryRepository;
 import pl.scf.model.repositories.ITopicSubCategoryRepository;
 
-import java.util.Date;
+import java.time.Instant;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static pl.scf.api.model.utils.ApiConstants.*;
 import static pl.scf.api.model.utils.DTOMapper.toSubCategory;
 import static pl.scf.api.model.utils.DTOMapper.toSubCategoryNames;
-import static pl.scf.api.model.utils.ResponseUtil.messageByIdError;
+import static pl.scf.api.model.utils.ResponseUtil.throwExceptionWhenIdZero;
 
 @Slf4j
 @Service
@@ -29,14 +30,13 @@ public class TopicSubCategoryService {
     private final ITopicCategoryRepository categoryRepository;
     private final String toMessageTopicSubCategoryWord = "TopicSubCategory";
 
-
     private UniversalResponse saveResponse;
-    public final UniversalResponse save(final TopicSubCategorySaveRequest request) {
+    public final UniversalResponse save(final TopicSubCategorySaveRequest request) throws NotFoundException {
         if (request.getName() == null) {
             log.warn(NULLABLE_MESSAGE, "New SubCategory name");
             saveResponse = UniversalResponse.builder()
                     .success(false)
-                    .date(new Date(System.currentTimeMillis()))
+                    .date(Instant.now())
                     .message(String.format(NOT_VALID_ELEMENT_MESSAGE, "New SubCategory name"))
                     .build();
         } else {
@@ -52,32 +52,29 @@ public class TopicSubCategoryService {
 
                         saveResponse = UniversalResponse.builder()
                                 .success(true)
-                                .date(new Date(System.currentTimeMillis()))
+                                .date(Instant.now())
                                 .message(SUCCESS_SAVING)
                                 .build();
                     },
                     () -> {
-                        log.warn(NOT_FOUND_BY_STH, toMessageTopicSubCategoryWord, "category", request.getCategoryName());
-                        saveResponse = UniversalResponse.builder()
-                                .success(false)
-                                .date(new Date(System.currentTimeMillis()))
-                                .message(FAIL_SAVING)
-                                .build();
+                        throw new NotFoundException("Not found TopicSubCategory with specified TopicCategory name");
                     }
             );
         } return saveResponse;
     }
 
     private UniversalResponse updateResponse;
-    public final UniversalResponse update(final TopicSubCategoryUpdateRequest request) {
+    public final UniversalResponse update(final TopicSubCategoryUpdateRequest request) throws NotFoundException, IdentificationException {
         if (request.getName() == null) {
             log.warn(NULLABLE_MESSAGE, "New SubCategory name");
             updateResponse = UniversalResponse.builder()
                     .success(false)
-                    .date(new Date(System.currentTimeMillis()))
+                    .date(Instant.now())
                     .message(String.format(NOT_VALID_ELEMENT_MESSAGE, "New SubCategory name"))
                     .build();
         } else {
+            throwExceptionWhenIdZero(request.getTopicCategoryId());
+
             subCategoryRepository.findById(request.getTopicCategoryId()).ifPresentOrElse(
                     (foundCategory) -> {
                         log.info(UPDATE_MESSAGE, toMessageTopicSubCategoryWord, request.getTopicCategoryId());
@@ -86,24 +83,21 @@ public class TopicSubCategoryService {
                         subCategoryRepository.save(foundCategory);
                         updateResponse = UniversalResponse.builder()
                                 .success(true)
-                                .date(new Date(System.currentTimeMillis()))
+                                .date(Instant.now())
                                 .message(SUCCESS_UPDATE)
                                 .build();
                     },
                     () -> {
-                        log.warn(NOT_FOUND_BY_ID, toMessageTopicSubCategoryWord, request.getTopicCategoryId());
-                        updateResponse = UniversalResponse.builder()
-                                .success(false)
-                                .date(new Date(System.currentTimeMillis()))
-                                .message(messageByIdError(request.getTopicCategoryId(), toMessageTopicSubCategoryWord))
-                                .build();
+                        throw new NotFoundException("Not found TopicSubCategory with specified TopicCategory id");
                     }
             );
         } return updateResponse;
     }
 
     private UniversalResponse deleteResponse;
-    public final UniversalResponse delete(final Long id) {
+    public final UniversalResponse delete(final Long id) throws NotFoundException, IdentificationException{
+        throwExceptionWhenIdZero(id);
+
         subCategoryRepository.findById(id).ifPresentOrElse(
                 (foundCategory) -> {
                     log.info(DELETING_MESSAGE, toMessageTopicSubCategoryWord, id);
@@ -111,19 +105,39 @@ public class TopicSubCategoryService {
 
                     deleteResponse = UniversalResponse.builder()
                             .success(true)
-                            .date(new Date(System.currentTimeMillis()))
+                            .date(Instant.now())
                             .message(SUCCESS_UPDATE)
                             .build();
                 },
                 () -> {
-                    log.warn(NOT_FOUND_BY_ID, toMessageTopicSubCategoryWord, id);
-                    deleteResponse = UniversalResponse.builder()
-                            .success(false)
-                            .date(new Date(System.currentTimeMillis()))
-                            .message(messageByIdError(id, toMessageTopicSubCategoryWord))
-                            .build();
+                    throw new NotFoundException("Not found TopicSubCategory with specified id");
                 }
         ); return deleteResponse;
+    }
+
+    private TopicSubCategoryResponse getByIdTopic;
+    public final TopicSubCategoryResponse getById(final Long id) throws NotFoundException, IdentificationException {
+        throwExceptionWhenIdZero(id);
+
+        subCategoryRepository.findById(id).ifPresentOrElse(
+                (foundCategory) -> {
+                    log.info(FETCH_BY_ID, toMessageTopicSubCategoryWord, id);
+                    final TopicSubCategoryDTO subCategoryDTO = TopicSubCategoryDTO.builder()
+                            .name(foundCategory.getName())
+                            .topicNameCategory(foundCategory.getCategory().getName())
+                            .build();
+
+                    getByIdTopic = TopicSubCategoryResponse.builder()
+                            .success(true)
+                            .date(Instant.now())
+                            .message("Found category")
+                            .subCategory(subCategoryDTO)
+                            .build();
+                },
+                () -> {
+                    throw new NotFoundException("Not found TopicSubCategory with specified id");
+                }
+        ); return getByIdTopic;
     }
 
     public final List<TopicSubCategoryDTO> getAll() {
@@ -136,32 +150,4 @@ public class TopicSubCategoryService {
         return toSubCategoryNames(subCategoryRepository.findAll());
     }
 
-    private TopicSubCategoryResponse getByIdTopic;
-    public final TopicSubCategoryResponse getById(final Long id) {
-        subCategoryRepository.findById(id).ifPresentOrElse(
-                (foundCategory) -> {
-                    log.info(FETCH_BY_ID, toMessageTopicSubCategoryWord, id);
-                    final TopicSubCategoryDTO subCategoryDTO = TopicSubCategoryDTO.builder()
-                            .name(foundCategory.getName())
-                            .topicNameCategory(foundCategory.getCategory().getName())
-                            .build();
-
-                    getByIdTopic = TopicSubCategoryResponse.builder()
-                            .success(true)
-                            .date(new Date(System.currentTimeMillis()))
-                            .message("Found category")
-                            .subCategory(subCategoryDTO)
-                            .build();
-                },
-                () -> {
-                    log.warn(NOT_FOUND_BY_ID, toMessageTopicSubCategoryWord, id);
-                    getByIdTopic = TopicSubCategoryResponse.builder()
-                            .success(false)
-                            .date(new Date(System.currentTimeMillis()))
-                            .message(messageByIdError(id, toMessageTopicSubCategoryWord))
-                            .subCategory(null)
-                            .build();
-                }
-        ); return getByIdTopic;
-    }
 }

@@ -4,10 +4,10 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pl.scf.api.model.dto.UserRoleDTO;
+import pl.scf.api.model.response.ExtendedUserRoleDTO;
 import pl.scf.api.model.response.UniversalResponse;
 import pl.scf.api.model.request.UserRoleUpdateRequest;
 import pl.scf.api.model.response.UserRoleResponse;
-import pl.scf.model.UserRole;
 import pl.scf.model.services.UserRoleService;
 
 import java.util.List;
@@ -57,6 +57,11 @@ public class UserRoleApi {
     @GetMapping("/get/name/{name}")
     public final ResponseEntity<UserRoleResponse> getByRoleName(@PathVariable("name") final String name) {
         return buildResponseEntity(OK, roleService.getByName(name));
+    }
+
+    @GetMapping("/get/name/user")
+    public final ResponseEntity<ExtendedUserRoleDTO> getUserRole() {
+        return buildResponseEntity(OK, roleService.getUserRole());
     }
 
     @GetMapping("/all")

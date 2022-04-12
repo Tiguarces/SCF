@@ -2,7 +2,6 @@ package pl.scf;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.Session;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -12,7 +11,11 @@ import pl.scf.model.property.InitializerProperty;
 import pl.scf.model.property.TopicCategoryProperty;
 import pl.scf.model.repositories.*;
 
-import java.util.*;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 import static pl.scf.api.model.utils.ApiConstants.*;
 
@@ -67,7 +70,7 @@ public class DatabaseInitializer {
                             .build();
 
                     final AppUserDetails adminDetails = AppUserDetails.builder()
-                            .createdDate(new Date(System.currentTimeMillis()))
+                            .createdDate(Instant.now())
                             .email(administratorAccountProperty.getEmail())
                             .nickname(administratorAccountProperty.getNickname())
                             .user(admin)

@@ -4,17 +4,19 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import pl.scf.api.model.dto.VerificationTokenDTO;
+import pl.scf.api.model.exception.IdentificationException;
+import pl.scf.api.model.exception.NotFoundException;
 import pl.scf.api.model.request.VerificationTokenSaveRequest;
 import pl.scf.api.model.response.UniversalResponse;
 import pl.scf.api.model.response.VerificationTokenResponse;
-import pl.scf.model.VerificationToken;
 import pl.scf.model.repositories.IVerificationTokenRepository;
 
-import java.util.Date;
+import java.time.Instant;
 import java.util.List;
 
 import static pl.scf.api.model.utils.ApiConstants.*;
 import static pl.scf.api.model.utils.DTOMapper.toVerificationTokens;
+import static pl.scf.api.model.utils.ResponseUtil.throwExceptionWhenIdZero;
 
 @Slf4j
 @Service
@@ -24,7 +26,9 @@ public class VerificationTokenService {
     private final String toMessageTokenWord = "Verification Token";
 
     private UniversalResponse updateResponse;
-    public final UniversalResponse update(final VerificationTokenSaveRequest request) {
+    public final UniversalResponse update(final VerificationTokenSaveRequest request) throws NotFoundException, IdentificationException {
+        throwExceptionWhenIdZero(request.getUserId());
+
         tokenRepository.findById(request.getUserId()).ifPresentOrElse(
                 (foundToken) -> {
                     foundToken.setToken(request.getToken());
@@ -34,47 +38,41 @@ public class VerificationTokenService {
                     tokenRepository.save(foundToken);
 
                     updateResponse = UniversalResponse.builder()
-                            .date(new Date(System.currentTimeMillis()))
+                            .date(Instant.now())
                             .success(true)
                             .message(SUCCESS_UPDATE)
                             .build();
                 },
                 () -> {
-                    log.warn(NOT_FOUND_BY_ID, "Token", request.getUserId());
-                    updateResponse = UniversalResponse.builder()
-                            .date(new Date(System.currentTimeMillis()))
-                            .success(false)
-                            .message(FAIL_UPDATE)
-                            .build();
+                    throw new NotFoundException("Not found VerificationToken with specified AppUser id");
                 }
         ); return  updateResponse;
     }
 
     private UniversalResponse deleteResponse;
-    public final UniversalResponse delete(final Long id) {
+    public final UniversalResponse delete(final Long id) throws NotFoundException, IdentificationException{
+        throwExceptionWhenIdZero(id);
+
         tokenRepository.findById(id).ifPresentOrElse(
                 (foundToken) -> {
                     log.info(DELETING_MESSAGE, toMessageTokenWord, id);
                     tokenRepository.deleteById(id);
 
                     deleteResponse = UniversalResponse.builder()
-                            .date(new Date(System.currentTimeMillis()))
+                            .date(Instant.now())
                             .success(true)
                             .message(SUCCESS_DELETE)
                             .build();
                 }, () -> {
-                    log.warn(NOT_FOUND_BY_ID, "Token", id);
-                    deleteResponse = UniversalResponse.builder()
-                            .date(new Date(System.currentTimeMillis()))
-                            .success(false)
-                            .message(SUCCESS_DELETE)
-                            .build();
+                    throw new NotFoundException("Not found VerificationToken with specified id");
                 }
         ); return deleteResponse;
     }
 
     private VerificationTokenResponse tokenByIdResponse;
-    public final VerificationTokenResponse getById(final Long id) {
+    public final VerificationTokenResponse getById(final Long id) throws NotFoundException, IdentificationException{
+        throwExceptionWhenIdZero(id);
+
         tokenRepository.findById(id).ifPresentOrElse(
                 (foundToken) -> {
                     log.info(FETCH_BY_ID, toMessageTokenWord, id);
@@ -86,25 +84,19 @@ public class VerificationTokenService {
 
                     tokenByIdResponse = VerificationTokenResponse.builder()
                             .success(true)
-                            .date(new Date(System.currentTimeMillis()))
+                            .date(Instant.now())
                             .message(SUCCESS_FETCHING)
                             .verificationToken(tokenDTO)
                             .build();
                 },
                 () -> {
-                    log.warn(NOT_FOUND_BY_ID, toMessageTokenWord, id);
-                    tokenByIdResponse = VerificationTokenResponse.builder()
-                            .success(false)
-                            .date(new Date(System.currentTimeMillis()))
-                            .message(FAIL_FETCHING)
-                            .verificationToken(null)
-                            .build();
+                    throw new NotFoundException("Not found VerificationToken with specified id");
                 }
         ); return tokenByIdResponse;
     }
 
     private VerificationTokenResponse tokenByNameResponse;
-    public final VerificationTokenResponse getByTokenName(final String desiredToken) {
+    public final VerificationTokenResponse getByTokenName(final String desiredToken) throws NotFoundException{
         tokenRepository.findByToken(desiredToken).ifPresentOrElse(
                 (foundToken) -> {
                     log.info(FETCH_BY_ID, toMessageTokenWord, foundToken.getId());
@@ -116,18 +108,12 @@ public class VerificationTokenService {
 
                     tokenByNameResponse = VerificationTokenResponse.builder()
                             .success(true)
-                            .date(new Date(System.currentTimeMillis()))
+                            .date(Instant.now())
                             .message(SUCCESS_FETCHING)
                             .verificationToken(tokenDTO)
                             .build();
                 }, () -> {
-                    log.warn(NOT_FOUND_BY_STH, toMessageTokenWord, "TokenName", desiredToken);
-                    tokenByNameResponse = VerificationTokenResponse.builder()
-                            .success(false)
-                            .date(new Date(System.currentTimeMillis()))
-                            .message(FAIL_FETCHING)
-                            .verificationToken(null)
-                            .build();
+                    throw new NotFoundException("Not found VerificationToken with specified token");
                 }
         ); return tokenByNameResponse;
     }

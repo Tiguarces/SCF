@@ -11,7 +11,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.OneToOne;
-import java.util.Date;
+import java.time.Instant;
 
 import static javax.persistence.CascadeType.ALL;
 import static javax.persistence.GenerationType.IDENTITY;
@@ -28,7 +28,7 @@ public class AppUserDetails {
     private Long id;
 
     private String email;
-    private Date createdDate;
+    private Instant createdDate;
     private String nickname;
 
     @JsonBackReference

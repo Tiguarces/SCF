@@ -16,12 +16,67 @@
 
 .category {
   width: 97%;
-  height: 10vh;
-
+  padding: 25px;
   box-sizing: border-box;
   background-color: white;
   border: 1px solid black;
+
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  flex-grow: 1;
+
+  cursor: pointer;
 }
+
+.category:hover {
+  transition-duration: 250ms;
+  border: 3px solid peru;
+}
+
+.category img {
+  border-radius: 100%;
+  padding: 15px;
+  height: 65px;
+  width: 65px;
+}
+
+.category p {
+  font-size: 160%;
+}
+
+#data {
+  float: left;
+  width: 70%;
+
+  display: flex;
+  align-items: center;
+}
+
+#statistics {
+  float: left;
+  width: 30%;
+
+  display: flex;
+  align-items: center;
+
+}
+
+#statistics p {
+  font-size: 100%;
+  margin: 5%;
+}
+
+.subCategories {
+  width: 100%;
+  display: flex;
+}
+
+.subCategories ul {
+  margin: 0px 5px 0px 15px;
+  font-size: 120%;
+}
+
 
 #rightBar {
   float: left;
