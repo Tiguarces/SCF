@@ -26,14 +26,20 @@ public class ForumUser {
     private Integer reputation;
     private Integer visitors;
 
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @JsonBackReference
     @OneToOne(fetch = LAZY, mappedBy = "user_details", cascade = ALL)
     private AppUser user;
 
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @JsonBackReference
     @OneToMany(fetch = EAGER, mappedBy = "user", cascade = ALL)
     private Set<Answer> answers;
 
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @JsonManagedReference
     @OneToOne(cascade = ALL)
     private ForumUserDescription description;
@@ -48,6 +54,8 @@ public class ForumUser {
     @ManyToOne(fetch = EAGER, cascade = ALL)
     private ForumUserTitle title;
 
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @JsonManagedReference
     @OneToOne(cascade = ALL)
     private ForumUserImages images;

@@ -7,6 +7,7 @@ import pl.scf.api.model.dto.UserRoleDTO;
 import pl.scf.api.model.response.ExtendedUserRoleDTO;
 import pl.scf.api.model.response.UniversalResponse;
 import pl.scf.api.model.request.UserRoleUpdateRequest;
+import pl.scf.api.model.response.UserResponse;
 import pl.scf.api.model.response.UserRoleResponse;
 import pl.scf.model.services.UserRoleService;
 
@@ -67,5 +68,10 @@ public class UserRoleApi {
     @GetMapping("/all")
     public final ResponseEntity<List<UserRoleDTO>> getAll() {
         return buildResponseEntity(OK, roleService.getAll());
+    }
+
+    @GetMapping("/get/user/id")
+    public final ResponseEntity<UserResponse> getUserRoleId() {
+        return buildResponseEntity(OK, roleService.getUserId());
     }
 }

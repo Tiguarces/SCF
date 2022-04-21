@@ -1,9 +1,14 @@
-import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
+import { Component, ElementRef, Injectable, OnInit, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { LoginRequest } from 'src/app/models/LoginRequest';
 import { RegisterRequest } from 'src/app/models/RegisterRequest';
+import { LoginResponse } from 'src/app/models/response/LoginResponse';
+import { UserResponse } from 'src/app/models/response/UserResponse';
 import { AuthService } from 'src/app/services/auth.service';
+import { NavbarComponent } from '../navbar/navbar.component';
 
 @Component({
   selector: 'app-account',
@@ -19,7 +24,9 @@ export class AccountComponent implements OnInit {
   private nicknameFormName: string;
   private emailFormName: string;
 
-  constructor(private notifierService: ToastrService, private authService: AuthService) {
+  private userRoleId: number;
+
+  constructor(private notifierService: ToastrService, private authService: AuthService, private router: Router) {
     this.emailFormName = "email";
     this.loginFormName = "login";
     this.passwordFormName = "password";
@@ -36,6 +43,13 @@ export class AccountComponent implements OnInit {
       nickname: new FormControl('', [Validators.required, Validators.minLength(1)]),
       email: new FormControl('', [Validators.required, Validators.minLength(1), Validators.email]),
     });
+
+    this.authService.getUserRoleId().subscribe({
+      next:
+        (response: UserResponse) => this.userRoleId = response.userId,
+      error:
+        (error: HttpErrorResponse) => console.log(error)
+    });
   }
 
   ngOnInit(): void {
@@ -51,13 +65,20 @@ export class AccountComponent implements OnInit {
         password: passwordFormElm.value
       };
 
-      this.authService.loginUser(request).subscribe(data => {
-        if(data.success)
-          this.notifierService.success("Pomyślnie logowanie", "Logowanie");
-        else
-          this.notifierService.warning("Sprawdź poprawność danych", "Logowanie");
+      this.authService.loginUser(request).subscribe({
+        next:
+          (response: LoginResponse) => {
+            this.notifierService.success("Pomyślnie logowanie", "Logowanie")
+            this.router
+                  .navigateByUrl("/", { skipLocationChange: true})
+                  .then(() => {
+                    // Refresh Navbar
+                    NavbarComponent.isUserLogged = this.authService.isUserLogged();
+                  })
+        },
+        error:
+          (error: HttpErrorResponse) => this.notifierService.warning("Sprawdź poprawność danych", "Logowanie")
       });
-
     } else {
       this.notifierService.warning("Pola nie mogą być puste, sprawdź poprawność danych", "Logowanie");
     }
@@ -70,13 +91,14 @@ export class AccountComponent implements OnInit {
     let emailFormElm = this.registerForm.get(this.emailFormName);
 
     if(loginFormElm?.valid && passwordFormElm?.valid &&
-       nicknameFormElm?.valid && emailFormElm?.valid) {
+      nicknameFormElm?.valid && emailFormElm?.valid && this.userRoleId) {
+
         const request: RegisterRequest = {
           username: loginFormElm.value,
           password: passwordFormElm.value,
           nickname: nicknameFormElm.value,
           email: emailFormElm.value,
-          roleId: 1
+          roleId: this.userRoleId
         };
 
         this.authService.registerUser(request).subscribe(data => {

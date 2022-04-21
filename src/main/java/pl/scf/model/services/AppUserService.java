@@ -3,6 +3,7 @@ package pl.scf.model.services;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.JWTDecodeException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +17,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import pl.scf.api.model.dto.AppUserDTO;
+import pl.scf.api.model.dto.*;
 import pl.scf.api.model.exception.IdentificationException;
 import pl.scf.api.model.exception.JwtException;
 import pl.scf.api.model.exception.NotFoundException;
@@ -25,6 +26,7 @@ import pl.scf.api.model.request.RefreshTokenRequest;
 import pl.scf.api.model.request.RegisterRequest;
 import pl.scf.api.model.request.UpdateUserRequest;
 import pl.scf.api.model.response.*;
+import pl.scf.api.model.utils.DTOMapper;
 import pl.scf.model.*;
 import pl.scf.model.mail.MailNotification;
 import pl.scf.model.mail.MailService;
@@ -33,16 +35,16 @@ import pl.scf.model.property.JWTProperty;
 import pl.scf.model.repositories.*;
 
 import java.time.Instant;
-import java.util.Date;
-import java.util.List;
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static pl.scf.api.model.utils.ApiConstants.*;
-import static pl.scf.api.model.utils.DTOMapper.toAppUser;
+import static pl.scf.api.model.utils.DTOMapper.toAppUsers;
 import static pl.scf.api.model.utils.DTOMapper.toUserRoles;
+import static pl.scf.api.model.utils.ResponseUtil.formatDate;
 import static pl.scf.api.model.utils.ResponseUtil.throwExceptionWhenIdZero;
+import static pl.scf.model.TokenType.ACCESS;
+import static pl.scf.model.TokenType.REFRESH;
 
 @Slf4j
 @Service
@@ -79,12 +81,14 @@ public class AppUserService {
                 .withExpiresAt(new Date(System.currentTimeMillis() + jwtProperty.getExpired_time()))
                 .withIssuer(jwtProperty.getIssuer())
                 .withClaim("roles", roles)
+                .withClaim("type", ACCESS.getName())
                 .sign(algorithm);
 
         String refreshToken = JWT.create()
                 .withSubject(user.getUsername())
                 .withExpiresAt(new Date(System.currentTimeMillis() + jwtProperty.getExpired_time() * 2))
                 .withIssuer(jwtProperty.getIssuer())
+                .withClaim("type", REFRESH.getName())
                 .sign(algorithm);
 
         log.info(AUTHENTICATE_USER_SUCCESS);
@@ -100,17 +104,20 @@ public class AppUserService {
 
     private RefreshTokenResponse refreshTokenResponse;
     public final RefreshTokenResponse refreshToken(final RefreshTokenRequest request) throws JwtException, JWTVerificationException {
-        if (request == null)
+        if(request.getRefreshToken() == null)
             throw new JWTVerificationException("JWT Token cannot be null");
 
         final Algorithm algorithm = Algorithm.HMAC512(jwtProperty.getSecret_password().getBytes(UTF_8));
         final JWTVerifier jwtVerifier = JWT.require(algorithm).build();
         final DecodedJWT decodedJWT = jwtVerifier.verify(request.getRefreshToken());
 
-        if (decodedJWT.getExpiresAt().before(new Date()))
+        if(decodedJWT.getExpiresAt().before(new Date()))
             throw new JwtException("Refresh Token expired");
         else
             log.info("Refresh token is valid");
+
+        if(!decodedJWT.getClaim("type").asString().equals(REFRESH.getName()))
+            throw new JwtException("This is not refresh Token");
 
         final String userUsername = decodedJWT.getSubject();
         userRepository.findByUsername(userUsername).ifPresentOrElse(
@@ -122,12 +129,14 @@ public class AppUserService {
                             .withExpiresAt(new Date(System.currentTimeMillis() + jwtProperty.getExpired_time()))
                             .withIssuer(jwtProperty.getIssuer())
                             .withClaim("roles", List.of(role))
+                            .withClaim("type", ACCESS.getName())
                             .sign(algorithm);
 
                     String refreshToken = JWT.create()
                             .withSubject(foundUser.getUsername())
                             .withExpiresAt(new Date(System.currentTimeMillis() + jwtProperty.getExpired_time() * 2))
                             .withIssuer(jwtProperty.getIssuer())
+                            .withClaim("type", REFRESH.getName())
                             .sign(algorithm);
 
                     log.info(AUTHENTICATE_USER_SUCCESS);
@@ -294,7 +303,6 @@ public class AppUserService {
                     log.info(FETCH_BY_ID, toMessageAppUserWord, id);
                     final AppUserDTO userDTO = AppUserDTO.builder()
                             .detailsId(foundUser.getUser_details().getId())
-                            .username(foundUser.getUsername())
                             .roleName(foundUser.getRole().getName())
                             .verTokenId(foundUser.getToken().getId())
                             .build();
@@ -312,29 +320,54 @@ public class AppUserService {
         ); return userByIdResponse;
     }
 
-    private AppUserResponse userByUsernameResponse;
-    public final AppUserResponse getByUsername(final String username) throws NotFoundException{
+    private ExtendedAppUserResponse userByUsernameResponse;
+    public final ExtendedAppUserResponse getByUsername(final String username) throws NotFoundException{
         userRepository.findByUsername(username).ifPresentOrElse(
                 (foundUser) -> {
                     log.info(FETCHING_BY_STH_MESSAGE, toMessageAppUserWord, "Username", username);
-                    final AppUserDTO userDTO = AppUserDTO.builder()
-                            .detailsId(foundUser.getUser_details().getId())
-                            .username(foundUser.getUsername())
-                            .roleName(foundUser.getRole().getName())
-                            .verTokenId(foundUser.getToken().getId())
+                    final UserRole role = foundUser.getRole();
+                    final AppUserDetails details = foundUser.getUser_details();
+                    final ForumUser forumUser = details.getForumUser();
+                    final ForumUserDescription description = forumUser.getDescription();
+                    final ForumUserTitle title = forumUser.getTitle();
+                    final ForumUserImages images = forumUser.getImages();
+                    final List<Topic> topics =  forumUser.getTopics().stream().toList();
+                    final List<Answer> answers = forumUser.getAnswers().stream().toList();
+
+                    final ExtendedAppUserDTO appUser = ExtendedAppUserDTO.builder()
+                            .role(role.getName())
+                            .nickName(details.getNickname())
+                            .createdDate(formatDate(details.getCreatedDate()))
+                            .email(details.getEmail())
+                            .descriptionContent(description.getContent())
+                            .avatarImage(images.getAvatarImageURL())
+                            .backgroundImage(images.getBackgroundImageURL())
+//                            .title(title.getTitleName())
+                            .visitors(forumUser.getVisitors())
+                            .reputation(forumUser.getReputation())
+                            .topics(getPreparedTopics(topics))
+                            .answers(getPreparedAnswers(answers))
                             .build();
 
-                    userByUsernameResponse = AppUserResponse.builder()
+                    userByUsernameResponse = ExtendedAppUserResponse.builder()
                             .date(Instant.now())
                             .success(true)
                             .message("Found AppUser")
-                            .user(userDTO)
+                            .appUser(appUser)
                             .build();
                 },
                 () -> {
                     throw new NotFoundException("Not found AppUser with specified username");
                 }
         ); return  userByUsernameResponse;
+    }
+
+    private List<ExtendedAnswerDTO> getPreparedAnswers(final List<Answer> answers) {
+        return DTOMapper.toExtendedAnswers(answers);
+    }
+
+    private List<ExtendedTopicDetailsDTO> getPreparedTopics(final List<Topic> topics) {
+        return DTOMapper.toExtendedTopicDetails(topics);
     }
 
     private UniversalResponse updateResponse;
@@ -414,7 +447,7 @@ public class AppUserService {
 
     public final List<AppUserDTO> getAll() {
         log.info(FETCHING_ALL_MESSAGE, toMessageAppUserWord);
-        return toAppUser(userRepository.findAll());
+        return toAppUsers(userRepository.findAll());
     }
 
     public UniversalResponse deleteAll() {
@@ -425,5 +458,10 @@ public class AppUserService {
                 .date(Instant.now())
                 .message(SUCCESS_DELETE)
                 .build();
+    }
+
+    public final Boolean checkIfTokenExpired(final String token) throws JWTDecodeException {
+        final DecodedJWT decodedToken = JWT.decode(token);
+        return decodedToken.getExpiresAt().before(new Date());
     }
 }

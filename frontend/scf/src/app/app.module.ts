@@ -10,7 +10,18 @@ import { AccountComponent } from './components/account/account.component';
 import { ReactiveFormsModule } from '@angular/forms';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ToastrModule } from 'ngx-toastr';
-import { HttpClientModule } from '@angular/common/http'
+import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http'
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { NgxWebstorageModule } from 'ngx-webstorage';
+import { TokenInterceptor } from './util/token.interceptor';
+import { LoggedAccountComponent } from './components/logged-account/logged-account.component';
+
+// Material
+import { MatTabsModule } from '@angular/material/tabs'
+import { MatDialogModule } from '@angular/material/dialog';
+import { ProfileSettingsPopUpComponent } from './components/profile-settings-pop-up/profile-settings-pop-up.component';
+import { UpdateProfileImagesPopUpComponent } from './components/update-profile-images-pop-up/update-profile-images-pop-up.component';
+import { EditProfileDescriptionPopUpComponent } from './components/edit-profile-description-pop-up/edit-profile-description-pop-up.component';
 
 @NgModule({
     declarations: [
@@ -18,7 +29,11 @@ import { HttpClientModule } from '@angular/common/http'
         NavbarComponent,
         FooterComponent,
         HomeComponent,
-        AccountComponent
+        AccountComponent,
+        LoggedAccountComponent,
+        ProfileSettingsPopUpComponent,
+        UpdateProfileImagesPopUpComponent,
+        EditProfileDescriptionPopUpComponent
     ],
     imports: [
         BrowserModule,
@@ -26,12 +41,23 @@ import { HttpClientModule } from '@angular/common/http'
         HttpClientModule,
         ReactiveFormsModule,
         BrowserAnimationsModule,
+        FontAwesomeModule,
+        NgxWebstorageModule.forRoot(),
         ToastrModule.forRoot({
           positionClass: "toast-bottom-left",
           preventDuplicates: true
-        })
+        }),
+
+        MatTabsModule,
+        MatDialogModule
     ],
-    providers: [],
+    providers: [
+      {
+        provide: HTTP_INTERCEPTORS,
+        useClass: TokenInterceptor,
+        multi: true
+      }
+    ],
     bootstrap: [AppComponent]
 })
 export class AppModule {}

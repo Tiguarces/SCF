@@ -69,12 +69,30 @@ public class DatabaseInitializer {
                             .username(administratorAccountProperty.getUsername())
                             .build();
 
+                    final var userImages = initializerProperty.getImages();
+                    final ForumUserTitle administratorTitle = ForumUserTitle.builder()
+                            .titleName("Administrator")
+                            .rangeIntervalPoints("Za dużo")
+                            .build();
+
+                    final ForumUser forumUser = ForumUser.builder()
+                            .user(admin)
+                            .description(new ForumUserDescription())
+                            .reputation(0)
+                            .images(ForumUserImages.builder()
+                                    .avatarImageURL(userImages.getAvatar())
+                                    .backgroundImageURL(userImages.getBackground())
+                                    .build())
+                            .visitors(0)
+                            .title(administratorTitle)
+                            .build();
+
                     final AppUserDetails adminDetails = AppUserDetails.builder()
                             .createdDate(Instant.now())
                             .email(administratorAccountProperty.getEmail())
                             .nickname(administratorAccountProperty.getNickname())
                             .user(admin)
-                            .forumUser(new ForumUser())
+                            .forumUser(forumUser)
                             .build();
 
                     final VerificationToken verificationToken = VerificationToken.builder()

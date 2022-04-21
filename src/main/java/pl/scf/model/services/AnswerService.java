@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import pl.scf.api.model.dto.AnswerDTO;
+import pl.scf.api.model.dto.LastAnswerDTO;
 import pl.scf.api.model.exception.IdentificationException;
 import pl.scf.api.model.exception.NotFoundException;
 import pl.scf.api.model.request.AnswerSaveRequest;
@@ -19,7 +20,8 @@ import java.time.Instant;
 import java.util.List;
 
 import static pl.scf.api.model.utils.ApiConstants.*;
-import static pl.scf.api.model.utils.DTOMapper.toAnswer;
+import static pl.scf.api.model.utils.DTOMapper.toAnswers;
+import static pl.scf.api.model.utils.DTOMapper.toLastAnswers;
 import static pl.scf.api.model.utils.ResponseUtil.throwExceptionWhenIdZero;
 
 @Slf4j
@@ -68,7 +70,7 @@ public class AnswerService {
                     final AnswerDTO answerDTO = AnswerDTO.builder()
                             .forumUserId(foundAnswer.getUser().getId())
                             .topicId(foundAnswer.getTopic().getId())
-                            .createdDate(foundAnswer.getCreatedDate())
+                            .createdDate(foundAnswer.getCreatedDate().toString()) // TODO: change to Instant
                             .content(foundAnswer.getContent())
                             .build();
 
@@ -129,23 +131,23 @@ public class AnswerService {
 
     public final List<AnswerDTO> getAllAnswersByTopicId(final Long topicId) {
         log.info("Fetching all Answers from Topic with id: {}", topicId);
-        return toAnswer(answerRepository.findAllByTopicId(topicId));
+        return toAnswers(answerRepository.findAllByTopicId(topicId));
     }
 
     public final List<AnswerDTO> getAllAnswersByUserId(final Long userId) {
         log.info("Fetching all Answers by User with id: {}", userId);
-        return toAnswer(answerRepository.findAllByUserId(userId));
+        return toAnswers(answerRepository.findAllByUserId(userId));
     }
 
     public final List<AnswerDTO> getAll() {
         log.info(FETCHING_ALL_MESSAGE, toMessageAnswerWord);
-        return toAnswer(answerRepository.findAll());
+        return toAnswers(answerRepository.findAll());
     }
 
-    public List<AnswerDTO> getAllLastAnswers(final Long amount) {
+    public List<LastAnswerDTO> getAllLastAnswers(final Long amount) {
         log.info(FETCHING_ALL_MESSAGE, toMessageAnswerWord);
-        return toAnswer(answerRepository
-                        .findTopByOrderByIdDesc()
+        return toLastAnswers(answerRepository
+                        .findAllTopByOrderByIdDesc()
                         .stream()
                         .limit(amount)
                         .toList());

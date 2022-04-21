@@ -61,6 +61,11 @@ user:
     - ADMIN
     - MODERATOR
 
+  images:
+    avatar: https://i0.wp.com/caravetclinic.com/wp-content/uploads/2016/07/person-icon-blue.png?ssl=1
+    background: https://eskipaper.com/images/gray-wallpaper-26.jpg
+
+
 admin-account:
   username: dejwid
   password: passat

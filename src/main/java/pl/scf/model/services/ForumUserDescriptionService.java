@@ -15,7 +15,7 @@ import java.time.Instant;
 import java.util.List;
 
 import static pl.scf.api.model.utils.ApiConstants.*;
-import static pl.scf.api.model.utils.DTOMapper.toForumUserDescription;
+import static pl.scf.api.model.utils.DTOMapper.toForumUserDescriptions;
 import static pl.scf.api.model.utils.ResponseUtil.throwExceptionWhenIdZero;
 
 @Slf4j
@@ -95,6 +95,6 @@ public class ForumUserDescriptionService {
 
     public final List<ForumUserDescriptionDTO> getAll() {
         log.info(FETCHING_ALL_MESSAGE, toMessageForumUserDescriptionWord);
-        return toForumUserDescription(descriptionRepository.findAll());
+        return toForumUserDescriptions(descriptionRepository.findAll());
     }
 }

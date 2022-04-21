@@ -15,7 +15,7 @@
         Regulamin
     </button>
 
-    <button routerLink="/account">
-        Konto
+    <button [routerLink]="NavbarComponent_field.isUserLogged ? '/logged/panel' : '/account'">
+        {{ NavbarComponent_field.isUserLogged ? "Twoje konto" : "Logowanie" }}
     </button>
 </nav>

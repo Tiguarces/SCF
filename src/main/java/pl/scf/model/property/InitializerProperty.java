@@ -7,6 +7,7 @@ import java.util.Map;
 
 @Data
 public class InitializerProperty {
-    private Map<String, String> titles;
+    private UserImages images;
     private List<String> roles;
+    private Map<String, String> titles;
 }

@@ -1,10 +1,7 @@
 package pl.scf.model;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -28,10 +25,14 @@ public class Answer {
 
     private Date createdDate;
 
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @JsonManagedReference
     @ManyToOne(fetch = LAZY)
     private Topic topic;
 
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @JsonManagedReference
     @ManyToOne(fetch = LAZY)
     private ForumUser user;

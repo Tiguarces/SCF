@@ -44,6 +44,11 @@ public class AuthApi {
         return buildResponseEntity(OK, userService.refreshToken(request));
     }
 
+    @GetMapping("/token/isExpired/{token}")
+    public final ResponseEntity<Boolean> tokenIsExpired(@PathVariable("token") final String token) {
+        return buildResponseEntity(OK, userService.checkIfTokenExpired(token));
+    }
+
     @GetMapping("/logout")
     public final ResponseEntity<UniversalResponse> logoutUser() {
         return buildResponseEntity(OK, userService.logoutUser());
@@ -75,8 +80,8 @@ public class AuthApi {
         return buildResponseEntity(OK, userService.getById(id));
     }
 
-    @GetMapping("/user/name/{username}")
-    public final ResponseEntity<AppUserResponse> getUserByUsername(@PathVariable("username") final String username) {
+    @GetMapping("/user/username/{username}")
+    public final ResponseEntity<ExtendedAppUserResponse> getUserByUsername(@PathVariable("username") final String username) {
         return buildResponseEntity(OK, userService.getByUsername(username));
     }
 

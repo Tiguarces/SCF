@@ -31,6 +31,8 @@ public class AppUser {
     @OneToOne(mappedBy = "user", cascade = ALL)
     private AppUserDetails user_details;
 
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @JsonManagedReference
     @ManyToOne(fetch = EAGER, cascade = MERGE)
     private UserRole role;

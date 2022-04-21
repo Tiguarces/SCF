@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import pl.scf.api.model.response.UniversalResponse;
 
@@ -20,7 +21,7 @@ import static pl.scf.api.model.utils.ResponseUtil.buildResponseEntity;
 
 @Slf4j
 @RestControllerAdvice
-public class APIExceptionHandler extends ResponseEntityExceptionHandler{
+public class APIExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(NotFoundException.class)
     public final ResponseEntity<UniversalResponse> handleNotFoundException(final NotFoundException exception) {
@@ -46,7 +47,7 @@ public class APIExceptionHandler extends ResponseEntityExceptionHandler{
     @ExceptionHandler({ JWTVerificationException.class, JwtException.class, TokenExpiredException.class, JWTDecodeException.class})
     public final ResponseEntity<UniversalResponse> handleJwtTokenException(final RuntimeException exception) {
         log.warn(exception.getMessage());
-        return buildResponseEntity(FORBIDDEN, UniversalResponse.builder()
+        return buildResponseEntity(UNAUTHORIZED, UniversalResponse.builder()
                 .success(false)
                 .date(Instant.now())
                 .message(exception.getMessage())
@@ -60,6 +61,16 @@ public class APIExceptionHandler extends ResponseEntityExceptionHandler{
                 .success(false)
                 .date(Instant.now())
                 .message(exception.getMessage())
+                .build());
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public final ResponseEntity<UniversalResponse> handleNotValidArgumentException(final MethodArgumentTypeMismatchException exception) {
+        log.warn("Argument not valid");
+        return buildResponseEntity(BAD_REQUEST, UniversalResponse.builder()
+                .success(false)
+                .date(Instant.now())
+                .message("Argument not valid type")
                 .build());
     }
 }

@@ -2,10 +2,7 @@ package pl.scf.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -35,6 +32,8 @@ public class AppUserDetails {
     @OneToOne(cascade = ALL)
     private AppUser user;
 
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @JsonManagedReference
     @OneToOne(cascade = ALL)
     private ForumUser forumUser;

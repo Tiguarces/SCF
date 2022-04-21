@@ -1,0 +1,67 @@
+<div class="container">
+  <nav>
+    <p> Witaj {{ loggedUser.nickName }} </p>
+
+    <button (click)="showProfileSettings()"> Twoje Konto </button>
+    <button (click)="showUpdateProfileImages()"> Aktualizuj zdjęcia </button>
+    <button (click)="showEditProfileDescription()"> Edytuj opis</button>
+    <button (click)="logoutUser()"> Wyloguj </button>
+  </nav>
+
+  <main>
+    <div id="profileBackground">
+      <img [src]="loggedUser.backgroundImage">
+
+      <div id="avatarImage">
+        <img [src]="loggedUser.avatarImage">
+      </div>
+
+      <div id="basicData">
+        <p>
+          <span>Data utworzenia konta: </span> <br> {{ loggedUser.createdDate }} </p>
+
+        <p>
+          <span>Tytuł: </span> <br> XD {{ loggedUser.title }} </p>
+
+        <p>
+          <span>Liczba postów: </span> <br> {{ loggedUser.topics.length }} </p>
+
+        <p>
+          <span>Liczba odpowiedzi: </span> <br> {{ loggedUser.answers.length }} </p>
+
+      </div>
+    </div>
+
+    <div id="list">
+      <mat-tab-group id="tabs" animationDuration="500ms">
+
+        <mat-tab label="Opis">
+          <div class="profileDescription">
+            <p> {{ loggedUser.descriptionContent }} Lorem ipsum dolor sit amet, consectetur adipisicing elit. Velit, rem maiores id numquam magni libero excepturi non voluptatibus adipisci quia saepe incidunt ipsa sint facere magnam ea aspernatur earum atque!</p>
+          </div>
+        </mat-tab>
+
+        <mat-tab label="Posty" >
+          <div *ngFor="let topic of loggedUser.topics" class="topic" title="Przekieruj">
+            <p> {{ topic.topicName }}
+              <span> {{ topic.categoryName }} >> {{ topic.subCategoryName }} </span>
+            </p><br>
+
+            <span id="description"> {{ topic.description }} </span>
+          </div>
+        </mat-tab>
+
+        <mat-tab label="Odpowiedzi">
+          <div *ngFor="let answerDetails of loggedUser.answers" class="answer" title="Przekieruj">
+            <p> {{ answerDetails.topicName }}
+              <span> {{ answerDetails.categoryName }} >> {{ answerDetails.subCategoryName }}  20.12.2020r </span>
+            </p><br>
+
+            <span> {{ answerDetails.answer.content }} </span>
+          </div>
+        </mat-tab>
+
+      </mat-tab-group>
+    </div>
+  </main>
+</div>

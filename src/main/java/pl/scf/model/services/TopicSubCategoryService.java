@@ -18,7 +18,7 @@ import java.time.Instant;
 import java.util.List;
 
 import static pl.scf.api.model.utils.ApiConstants.*;
-import static pl.scf.api.model.utils.DTOMapper.toSubCategory;
+import static pl.scf.api.model.utils.DTOMapper.toSubCategories;
 import static pl.scf.api.model.utils.DTOMapper.toSubCategoryNames;
 import static pl.scf.api.model.utils.ResponseUtil.throwExceptionWhenIdZero;
 
@@ -142,7 +142,7 @@ public class TopicSubCategoryService {
 
     public final List<TopicSubCategoryDTO> getAll() {
         log.info(FETCHING_ALL_MESSAGE, toMessageTopicSubCategoryWord);
-        return toSubCategory(subCategoryRepository.findAll());
+        return toSubCategories(subCategoryRepository.findAll());
     }
 
     public final List<String> getAllNames() {

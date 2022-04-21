@@ -108,19 +108,59 @@
   background-color: rgb(204, 138, 15);
 }
 
-#rightBar div:nth-child(2) p,
-#rightBar div:nth-child(3) p {
+#rightBar div:nth-child(2) > p,
+#rightBar div:nth-child(3) > p {
   margin: 0;
   padding: 3%;
   height: 5vh;
 
   font-weight: 600;
   box-sizing: border-box;
-  background-color: black;
+  background-color: rgb(57, 72, 105);
   border-bottom: 1px solid white;
 }
 
 #rightBar p {
   text-align: center;
   color: white;
+}
+
+.menuElement {
+  width: 100%;
+  cursor: pointer;
+  height: 20vh !important;
+  background-color: #4a4b4b !important;
+}
+
+.menuElement div > p {
+  background-color: #4e7d88 !important;
+}
+
+.menuElement table {
+  width: 100%;
+  text-align: center;
+  font-size: 90%;
+}
+
+.nickname {
+  font-size: 130%;
+  font-weight: 900;
+}
+
+.menuElement td > img {
+  width: 65px;
+  height: 65px;
+  padding: 5px;
+  border-radius: 100%;
+}
+
+.header {
+  font-size: 140%;
+  font-weight: 900;
+  color: orange !important;
+  background-color: black !important;
+}
+
+#answerBox {
+  height: 23vh !important;
 }

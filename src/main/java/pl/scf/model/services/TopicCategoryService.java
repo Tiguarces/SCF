@@ -21,6 +21,7 @@ import pl.scf.model.repositories.ITopicSubCategoryRepository;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 import static pl.scf.api.model.utils.ApiConstants.*;
 import static pl.scf.api.model.utils.DTOMapper.*;
@@ -146,8 +147,7 @@ public class TopicCategoryService {
 
     private TopicCategoryResponse getByIdTopic;
     public final TopicCategoryResponse getById(final Long id) throws NotFoundException, IdentificationException{
-        if(id == 0)
-            throw new IdentificationException(id);
+        throwExceptionWhenIdZero(id);
 
         categoryRepository.findById(id).ifPresentOrElse(
                 (foundCategory) -> {
@@ -157,6 +157,9 @@ public class TopicCategoryService {
                             .categoryName(foundCategory.getName())
                             .subCategoryNames(toSubCategoryNamesToArray(foundCategory.getSubCategory()))
                             .build();
+
+                    categoryDTO.setNumberOfTopics(getNumberOfTopics(categoryDTO));
+                    categoryDTO.setNumberOfAnswers(getNumberOfAnswers(categoryDTO));
 
                     getByIdTopic = TopicCategoryResponse.builder()
                             .success(true)
@@ -173,7 +176,7 @@ public class TopicCategoryService {
 
     public final GetAllTopicCategoryResponse getAll() {
         log.info(FETCHING_ALL_MESSAGE, toMessageTopicCategoryWord);
-        final var categories = toTopicCategory(categoryRepository.findAll());
+        final var categories = toTopicCategories(categoryRepository.findAll());
 
         categories.forEach(category -> {
             category.setNumberOfTopics(getNumberOfTopics(category));
@@ -199,34 +202,28 @@ public class TopicCategoryService {
         final var subCategoriesByCatName =
                 subCategoryRepository
                         .findAllByCategoryName(category.getCategoryName())
-                        .parallelStream()
+                        .stream()
                         .map(TopicSubCategory::getName)
                         .toList();
 
-        final var allTopicsBySubCatNames =
-                topicRepository
-                        .findAllBySubCategoryNameIn(subCategoriesByCatName)
-                        .parallelStream()
-                        .count();
-
-        return (int) allTopicsBySubCatNames;
+        return topicRepository
+               .findAllBySubCategoryNameIn(subCategoriesByCatName)
+               .size();
     }
 
     private Integer getNumberOfAnswers(final TopicCategoryDTO category) {
         final var subCategoriesByCatName =
                 subCategoryRepository
                         .findAllByCategoryName(category.getCategoryName())
-                        .parallelStream()
+                        .stream()
                         .map(TopicSubCategory::getName)
                         .toList();
 
-        final var allAnswersByTopicNames =
-                topicRepository
-                        .findAllBySubCategoryNameIn(subCategoriesByCatName)
-                        .parallelStream()
-                        .map(Topic::getAnswers)
-                        .count();
-
-        return (int) allAnswersByTopicNames;
+        return topicRepository
+                .findAllBySubCategoryNameIn(subCategoriesByCatName)
+                .stream()
+                .map(Topic::getAnswers)
+                .mapToInt(Set::size)
+                .sum();
     }
 }

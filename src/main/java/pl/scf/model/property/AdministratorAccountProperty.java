@@ -7,5 +7,6 @@ public class AdministratorAccountProperty {
     private String username;
     private String password;
     private String nickname;
+    private String title;
     private String email;
 }

@@ -4,7 +4,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import pl.scf.model.Answer;
 import pl.scf.model.Topic;
-import pl.scf.model.TopicCategory;
 
 import java.util.List;
 
@@ -15,4 +14,8 @@ public interface ITopicRepository extends JpaRepository<Topic, Long> {
     List<Topic> findAllByUserId(Long userId);
 
     List<Topic> findAllBySubCategoryNameIn(final List<String> allSubCategoriesByCategoryName);
+
+    List<Topic> findAllTopByOrderByIdDesc();
+
+    Topic findByDetailsTopicName(String name);
 }

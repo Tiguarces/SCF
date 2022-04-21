@@ -7,9 +7,11 @@ import pl.scf.model.*;
 import java.util.Collection;
 import java.util.List;
 
+import static pl.scf.api.model.utils.ResponseUtil.formatDate;
+
 public final class DTOMapper {
 
-    public static List<TopicCategoryDTO> toTopicCategory(final List<TopicCategory> rawTopicCategories) {
+    public static List<TopicCategoryDTO> toTopicCategories(final List<TopicCategory> rawTopicCategories) {
         return rawTopicCategories.stream()
                 .map(DTOMapper::toTopicDTO)
                 .toList();
@@ -38,8 +40,9 @@ public final class DTOMapper {
 
     /////////////////////////////////////////////////
 
-    public static List<AnswerDTO> toAnswer(final List<Answer> rawAnswers) {
-        return rawAnswers.stream()
+    public static List<AnswerDTO> toAnswers(final List<Answer> rawAnswers) {
+        return rawAnswers
+                .stream()
                 .map(DTOMapper::toAnswerDTO)
                 .toList();
     }
@@ -47,15 +50,72 @@ public final class DTOMapper {
     private static AnswerDTO toAnswerDTO(final Answer answer) {
         return AnswerDTO.builder()
                 .topicId(answer.getTopic().getId())
-                .createdDate(answer.getCreatedDate())
+//                .createdDate(answer.getCreatedDate().toString())
                 .forumUserId(answer.getUser().getId())
                 .content(answer.getContent())
                 .build();
     }
 
+    public static List<LastAnswerDTO> toLastAnswers(final List<Answer> lastRawAnswers) {
+        return lastRawAnswers
+                .stream()
+                .map(DTOMapper::toLastAnswerDTO)
+                .toList();
+    }
+
+    private static LastAnswerDTO toLastAnswerDTO(final Answer answer) {
+        final Topic topic = answer.getTopic();
+        final TopicDetails topicDetails = topic.getDetails();
+        final TopicSubCategory subCategory = topic.getSubCategory();
+        final TopicCategory topicCategory = subCategory.getCategory();
+        final ForumUser forumUser = answer.getUser();
+        final AppUser appUser = forumUser.getUser();
+        final AppUserDetails appUserDetails = appUser.getUser_details();
+        final ForumUserImages userImages = forumUser.getImages();
+
+        return LastAnswerDTO.builder()
+                .content(answer.getContent())
+                .createdDate(answer.getCreatedDate())
+                .topicId(topic.getId())
+                .topicName(topicDetails.getTopicName())
+                .topicCategory(topicCategory.getName())
+                .topicSubCategory(subCategory.getName())
+                .avatarImageURL(userImages.getAvatarImageURL())
+                .userNickname(appUserDetails.getNickname())
+                .build();
+    }
+
+    public static List<ExtendedAnswerDTO> toExtendedAnswers(final List<Answer> answers) {
+        return answers
+                .stream()
+                .map(DTOMapper::toExtendedAnswer)
+                .toList();
+    }
+
+    private static ExtendedAnswerDTO toExtendedAnswer(final Answer answer) {
+        final Topic answerTopic = answer.getTopic();
+        final TopicSubCategory subCategory = answerTopic.getSubCategory();
+        final TopicCategory topicCategory = subCategory.getCategory();
+        final TopicDetails topicDetails = answerTopic.getDetails();
+
+        final AnswerDTO answerDTO = AnswerDTO.builder()
+                .content(answer.getContent())
+                .createdDate("Unknown")
+                .forumUserId(answer.getUser().getId())
+                .topicId(answerTopic.getId())
+                .build();
+
+        return ExtendedAnswerDTO.builder()
+                .answer(answerDTO)
+                .subCategoryName(subCategory.getName())
+                .categoryName(topicCategory.getName())
+                .topicName(topicDetails.getTopicName())
+                .build();
+    }
+
     /////////////////////////////////////////////////
 
-    public static List<AppUserDTO> toAppUser(final List<AppUser> rawUsers) {
+    public static List<AppUserDTO> toAppUsers(final List<AppUser> rawUsers) {
         return rawUsers
                 .stream()
                 .map(DTOMapper::toAppUserDTO)
@@ -65,7 +125,6 @@ public final class DTOMapper {
     private static AppUserDTO toAppUserDTO(final AppUser appUser) {
         return AppUserDTO.builder()
                 .verTokenId(appUser.getToken().getId())
-                .username(appUser.getUsername())
                 .detailsId(appUser.getUser_details().getId())
                 .roleName(appUser.getRole().getName())
                 .build();
@@ -73,7 +132,7 @@ public final class DTOMapper {
 
     /////////////////////////////////////////////////
 
-    public static List<AppUserDetailsDTO> toDetails(final List<AppUserDetails> rawDetails) {
+    public static List<AppUserDetailsDTO> toAppUserDetails(final List<AppUserDetails> rawDetails) {
         return rawDetails
                 .stream()
                 .map(DTOMapper::toDetailsDTO)
@@ -92,7 +151,7 @@ public final class DTOMapper {
 
     /////////////////////////////////////////////////
 
-    public static List<ForumUserDescriptionDTO> toForumUserDescription(final List<ForumUserDescription> rawDescriptions) {
+    public static List<ForumUserDescriptionDTO> toForumUserDescriptions(final List<ForumUserDescription> rawDescriptions) {
         return rawDescriptions
                 .stream()
                 .map(DTOMapper::toDescriptionDTO)
@@ -125,7 +184,7 @@ public final class DTOMapper {
 
     /////////////////////////////////////////////////
 
-    public static List<ForumUserDTO> toForumUser(final List<ForumUser> rawForumUsers) {
+    public static List<ForumUserDTO> toForumUsers(final List<ForumUser> rawForumUsers) {
         return rawForumUsers
                 .stream()
                 .map(DTOMapper::toForumUserDTO)
@@ -145,7 +204,7 @@ public final class DTOMapper {
 
     /////////////////////////////////////////////////
 
-    public static List<ForumUserTitleDTO> toForumUserTitle(final List<ForumUserTitle> rawTitles) {
+    public static List<ForumUserTitleDTO> toForumUserTitles(final List<ForumUserTitle> rawTitles) {
         return rawTitles
                 .stream()
                 .map(DTOMapper::toTitlesDTO)
@@ -161,7 +220,7 @@ public final class DTOMapper {
 
     /////////////////////////////////////////////////
 
-    public static List<TopicSubCategoryDTO> toSubCategory(final List<TopicSubCategory> rawSubCategories) {
+    public static List<TopicSubCategoryDTO> toSubCategories(final List<TopicSubCategory> rawSubCategories) {
         return rawSubCategories
                 .stream()
                 .map(DTOMapper::toSubCategoryDTO)
@@ -208,6 +267,28 @@ public final class DTOMapper {
                 .build();
     }
 
+    public static List<ExtendedTopicDetailsDTO> toExtendedTopicDetails(final List<Topic> rawTopicDetails) {
+        return rawTopicDetails
+                .stream()
+                .map(DTOMapper::toExtendedTopicDetailsDTO)
+                .toList();
+    }
+
+    private static ExtendedTopicDetailsDTO toExtendedTopicDetailsDTO(final Topic topic) {
+        final TopicDetails topicDetails = topic.getDetails();
+        final TopicSubCategory subCategory = topic.getSubCategory();
+        final TopicCategory topicCategory = subCategory.getCategory();
+
+        return ExtendedTopicDetailsDTO.builder()
+                .topicId(topic.getId())
+                .categoryName(topicCategory.getName())
+                .subCategoryName(subCategory.getName())
+                .description(topicDetails.getDescription())
+                .topicName(topicDetails.getTopicName())
+//                .createdDate(formatDate(topic.getCreatedDate()))
+                .build();
+    }
+
     /////////////////////////////////////////////////
 
     public static List<UserRoleDTO> toRoles(final List<UserRole> rawUserRoles) {
@@ -248,4 +329,63 @@ public final class DTOMapper {
                 .map(GrantedAuthority::getAuthority)
                 .toList();
     }
+
+    /////////////////////////////////////////////////
+
+    public static List<TopicDTO> toTopics(final List<Topic> rawTopics) {
+        return rawTopics
+                .stream()
+                .map(DTOMapper::toTopicDTO)
+                .toList();
+    }
+
+    private static TopicDTO toTopicDTO(final Topic topic) {
+        return TopicDTO.builder()
+                .userId(topic.getUser().getId())
+                .detailsId(topic.getDetails().getId())
+                .subCategoryName(topic.getSubCategory().getName())
+                .build();
+    }
+
+    public static List<LastTopicDTO> toLastTopics(final List<Topic> lastRawTopics) {
+        return lastRawTopics
+                .stream()
+                .map(DTOMapper::toLastTopicDTO)
+                .toList();
+    }
+
+    private static LastTopicDTO toLastTopicDTO(final Topic topic) {
+        final TopicDetails topicDetails = topic.getDetails();
+        final ForumUser forumUser = topic.getUser();
+        final AppUser appUser = forumUser.getUser();
+        final AppUserDetails appUserDetails = appUser.getUser_details();
+        final TopicCategory topicCategory = topic.getSubCategory().getCategory();
+        final ForumUserImages userImages = forumUser.getImages();
+
+        return LastTopicDTO.builder()
+                .userId(topic.getUser().getId())
+                .subCategoryName(topic.getSubCategory().getName())
+                .topicName(topicDetails.getTopicName())
+//                .createdDate(formatDate(topic.getCreatedDate()))
+                .userNickname(appUserDetails.getNickname())
+                .topicCategoryName(topicCategory.getName())
+                .numberOfAnswers(getNumberOfAnswers(forumUser))
+                .avatarImageURL(userImages.getAvatarImageURL())
+                .build();
+    }
+
+    private static Integer getNumberOfAnswers(final ForumUser forumUser) {
+        return forumUser
+                .getAnswers()
+                .size();
+    }
+
+    public static TopicDTO toTopic(final Topic topic) {
+        return TopicDTO.builder()
+                .detailsId(topic.getDetails().getId())
+                .subCategoryName(topic.getSubCategory().getName())
+                .userId(topic.getUser().getId())
+                .build();
+    }
+
 }

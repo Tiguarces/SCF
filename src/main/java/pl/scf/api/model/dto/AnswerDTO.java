@@ -9,7 +9,7 @@ import java.util.Date;
 @Builder
 public class AnswerDTO {
     private String content;
-    private Date createdDate;
+    private String createdDate;
     private Long forumUserId;
     private Long topicId;
 }

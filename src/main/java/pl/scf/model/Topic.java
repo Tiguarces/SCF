@@ -1,12 +1,11 @@
 package pl.scf.model;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.*;
+import java.time.Instant;
+import java.util.Date;
 import java.util.Set;
 
 import static javax.persistence.CascadeType.ALL;
@@ -27,9 +26,13 @@ public class Topic {
     @OneToOne(fetch = LAZY, cascade = ALL)
     private TopicDetails details;
 
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @JsonManagedReference
     @OneToMany(fetch = LAZY, mappedBy = "topic")
     private Set<Answer> answers;
+
+    private Instant createdDate;
 
     @JsonManagedReference
     @ManyToOne(fetch = LAZY)

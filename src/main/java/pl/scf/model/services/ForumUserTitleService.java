@@ -20,8 +20,8 @@ import java.util.List;
 import java.util.Map;
 
 import static pl.scf.api.model.utils.ApiConstants.*;
-import static pl.scf.api.model.utils.DTOMapper.toForumUser;
-import static pl.scf.api.model.utils.DTOMapper.toForumUserTitle;
+import static pl.scf.api.model.utils.DTOMapper.toForumUsers;
+import static pl.scf.api.model.utils.DTOMapper.toForumUserTitles;
 import static pl.scf.api.model.utils.ResponseUtil.throwExceptionWhenIdZero;
 
 @Slf4j
@@ -120,12 +120,12 @@ public class ForumUserTitleService {
 
     public final List<ForumUserTitleDTO> getAll() {
         log.info(FETCHING_ALL_MESSAGE, toMessageForumUserTitleWord);
-        return toForumUserTitle(titleRepository.findAll());
+        return toForumUserTitles(titleRepository.findAll());
     }
 
     public final List<ForumUserDTO> getAllByTitleName(final String titleName) {
         log.info(FETCHING_BY_STH_MESSAGE, toMessageForumUserTitleWord, "TitleName", titleName);
-        return toForumUser(titleRepository.findAllUsersByTitleName(titleName));
+        return toForumUsers(titleRepository.findAllUsersByTitleName(titleName));
     }
 
     public final Map<String, String> getAllTitlesWithIntervals() {

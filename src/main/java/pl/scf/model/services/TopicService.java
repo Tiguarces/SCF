@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import pl.scf.api.model.dto.AnswerDTO;
+import pl.scf.api.model.dto.LastTopicDTO;
 import pl.scf.api.model.dto.TopicDTO;
 import pl.scf.api.model.exception.IdentificationException;
 import pl.scf.api.model.exception.NotFoundException;
@@ -11,7 +12,6 @@ import pl.scf.api.model.request.TopicSaveRequest;
 import pl.scf.api.model.request.TopicUpdateRequest;
 import pl.scf.api.model.response.TopicResponse;
 import pl.scf.api.model.response.UniversalResponse;
-import pl.scf.model.Answer;
 import pl.scf.model.Topic;
 import pl.scf.model.TopicDetails;
 import pl.scf.model.repositories.IForumUserRepository;
@@ -22,6 +22,7 @@ import java.time.Instant;
 import java.util.List;
 
 import static pl.scf.api.model.utils.ApiConstants.*;
+import static pl.scf.api.model.utils.DTOMapper.*;
 import static pl.scf.api.model.utils.ResponseUtil.throwExceptionWhenIdZero;
 
 @Slf4j
@@ -149,42 +150,35 @@ public class TopicService {
 
     public final List<TopicDTO> getAll() {
         log.info(FETCHING_ALL_MESSAGE, toMessageTopicWord);
-        return topicRepository.findAll()
-                .parallelStream()
-                .map(TopicService::toTopicDto)
-                .toList();
+        return toTopics(topicRepository.findAll());
     }
 
     public final List<TopicDTO> getAllByUserId(final Long userId) {
         log.info(FETCHING_BY_STH_MESSAGE, toMessageTopicWord, "id", userId);
-        return topicRepository.findAllByUserId(userId)
-                .parallelStream()
-                .map(TopicService::toTopicDto)
-                .toList();
+        return toTopics(topicRepository.findAllByUserId(userId));
     }
 
-    private static TopicDTO toTopicDto(final Topic topic) {
-        return TopicDTO.builder()
-                .detailsId(topic.getDetails().getId())
-                .subCategoryName(topic.getSubCategory().getName())
-                .userId(topic.getUser().getId())
-                .build();
+    public final List<LastTopicDTO> getAllLastTopics(final Long amount) {
+        log.info(FETCHING_ALL_MESSAGE, toMessageTopicWord);
+        return toLastTopics(topicRepository
+                .findAllTopByOrderByIdDesc()
+                .stream()
+                .limit(amount)
+                .toList());
     }
 
     public final List<AnswerDTO> getAllAnswers(final Long topicId) {
         log.info("Fetching all Answers from Topic with id: {}", topicId);
-        return topicRepository.findAllAnswersById(topicId)
-                .parallelStream()
-                .map(TopicService::toAnswerDto)
-                .toList();
+        return toAnswers(topicRepository.findAllAnswersById(topicId));
     }
 
-    private static AnswerDTO toAnswerDto(final Answer answer) {
-        return AnswerDTO.builder()
-                .content(answer.getContent())
-                .createdDate(answer.getCreatedDate())
-                .topicId(answer.getTopic().getId())
-                .forumUserId(answer.getUser().getId())
+    public final TopicResponse getByTopicName(final String name) {
+        log.info(FETCHING_BY_STH_MESSAGE, toMessageTopicWord, "name", name);
+        return TopicResponse.builder()
+                .success(true)
+                .date(Instant.now())
+                .message(SUCCESS_FETCHING)
+                .topic(toTopic(topicRepository.findByDetailsTopicName(name)))
                 .build();
     }
 }

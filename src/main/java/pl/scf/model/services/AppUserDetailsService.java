@@ -15,7 +15,7 @@ import java.time.Instant;
 import java.util.List;
 
 import static pl.scf.api.model.utils.ApiConstants.*;
-import static pl.scf.api.model.utils.DTOMapper.toDetails;
+import static pl.scf.api.model.utils.DTOMapper.toAppUserDetails;
 import static pl.scf.api.model.utils.ResponseUtil.throwExceptionWhenIdZero;
 
 @Slf4j
@@ -126,6 +126,6 @@ public class AppUserDetailsService {
 
     public final List<AppUserDetailsDTO> getAll() {
         log.info(FETCHING_ALL_MESSAGE, toMessageDetailsWord);
-        return toDetails(detailsRepository.findAll());
+        return toAppUserDetails(detailsRepository.findAll());
     }
 }

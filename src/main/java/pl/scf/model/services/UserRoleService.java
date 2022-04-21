@@ -9,6 +9,7 @@ import pl.scf.api.model.exception.NotFoundException;
 import pl.scf.api.model.request.UserRoleUpdateRequest;
 import pl.scf.api.model.response.ExtendedUserRoleDTO;
 import pl.scf.api.model.response.UniversalResponse;
+import pl.scf.api.model.response.UserResponse;
 import pl.scf.api.model.response.UserRoleResponse;
 import pl.scf.model.UserRole;
 import pl.scf.model.repositories.IUserRoleRepository;
@@ -181,5 +182,18 @@ public class UserRoleService {
     public final List<UserRoleDTO> getAll() {
         log.info(FETCHING_ALL_MESSAGE, toMessageUserRoleWord);
         return toRoles(roleRepository.findAll());
+    }
+
+    public final UserResponse getUserId() throws NotFoundException{
+        final Long userId = roleRepository.findByName("USER").getId();
+        if(userId == null)
+            throw new NotFoundException("Not found User Role");
+
+        return UserResponse.builder()
+                .success(true)
+                .date(Instant.now())
+                .message(SUCCESS_FETCHING)
+                .userId(userId)
+                .build();
     }
 }
