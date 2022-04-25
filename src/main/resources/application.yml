@@ -26,7 +26,7 @@ spring:
 ### JWT TOKEN ###
 jwt-token:
   secret_password: scf_passat
-  expired_time: 1800000
+  expired_time: 30000 #1800000
   issuer: SCF
 
 
